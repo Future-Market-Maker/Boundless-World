@@ -9,7 +9,7 @@ const { PRIVATE_KEY, SMARTCHAIN_API_KEY } = require('./secret.json');
 module.exports = {
   
   solidity: {
-  version: "0.5.16",
+  version: "0.8.15",
   settings: {
     optimizer: {
       enabled: true
@@ -17,16 +17,16 @@ module.exports = {
    }
   },
 
-  defaultNetwork: "testnet",
+  defaultNetwork: "bscTestnet",
 
   networks: {
-    testnet: {
+    bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545",
       chainId: 97,
       gasPrice: 20000000000,
       accounts: [`0x${PRIVATE_KEY}`]
     },
-    mainnet: {
+    bsc: {
       url: "https://bsc-dataseed.binance.org/",
       chainId: 56,
       gasPrice: 20000000000,
@@ -37,8 +37,8 @@ module.exports = {
   etherscan: {
     apiKey: {
       // binance smart chain
-      testnet: `${SMARTCHAIN_API_KEY}`,
-      mainnet: `${SMARTCHAIN_API_KEY}`
+      bscTestnet: `${SMARTCHAIN_API_KEY}`,
+      bsc: `${SMARTCHAIN_API_KEY}`
     }
   },
 
