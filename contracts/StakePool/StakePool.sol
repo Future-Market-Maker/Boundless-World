@@ -16,7 +16,7 @@ contract StakePool {
     uint256 totalFunds;
     uint256 totalDurations;
 
-    mapping(address => investment) investments;
+    mapping(address => Investment) investments;
 
     struct Investment {
         uint256 amount;
@@ -28,8 +28,8 @@ contract StakePool {
     function profit(address investor) public view returns(uint256) {
         Investment memory investment = investments[investor];
         
-        totalShare = totalFunds * totalDurations;
-        investorShare = investment.profit + investment.amount * investment.duration;
+        uint256 totalShare = totalFunds * totalDurations;
+        uint256 investorShare = investment.profit + investment.amount * investment.duration;
 
         return investment.start + investment.duration >= block.timestamp ?
         investorShare * totalProfits / totalShare :
