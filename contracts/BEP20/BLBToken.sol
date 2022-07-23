@@ -7,8 +7,17 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./TransactionFee.sol";
 
-contract BLBToken is ERC20, ERC20Capped, ERC20Burnable, ERC20Permit, Pausable, Ownable {
+contract BLBToken is 
+    ERC20, 
+    ERC20Capped, 
+    ERC20Burnable, 
+    ERC20Permit, 
+    Pausable, 
+    Ownable, 
+    TransactionFee
+{
 
     constructor() 
         ERC20("Boundless World", "BLB") 
@@ -40,8 +49,7 @@ contract BLBToken is ERC20, ERC20Capped, ERC20Burnable, ERC20Permit, Pausable, O
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
-        whenNotPaused
-        override
+        override(ERC20, TransactionFee)
     {
         super._beforeTokenTransfer(from, to, amount);
     }
