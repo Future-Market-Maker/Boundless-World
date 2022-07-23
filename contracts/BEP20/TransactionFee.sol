@@ -19,11 +19,10 @@ abstract contract TransactionFee is ERC20, Ownable {
         }
         feeFraction = _feeFraction;
         feeReceiver = _feeReceiver;
-
     }
 
-    function transactionFee(uint256 transferingAmount) public pure returns(uint256) {
-        return amount * feeFraction / 10 ** 6;
+    function transactionFee(uint256 transferingAmount) public view returns(uint256) {
+        return transferingAmount * feeFraction / 10 ** 6;
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
