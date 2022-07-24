@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "./TransferControl.sol";
 import "./TransactionFee.sol";
 
 contract BLBToken is 
@@ -16,6 +17,7 @@ contract BLBToken is
     ERC20Permit, 
     Pausable, 
     Ownable, 
+    TransferControl,
     TransactionFee
 {
 
@@ -49,7 +51,7 @@ contract BLBToken is
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
-        override(ERC20, TransactionFee)
+        override(ERC20, TransferControl, TransactionFee)
     {
         super._beforeTokenTransfer(from, to, amount);
     }

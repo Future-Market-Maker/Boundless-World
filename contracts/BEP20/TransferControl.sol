@@ -11,17 +11,24 @@ abstract contract TransferControl is ERC20, Ownable {
     EnumerableMap.AddressToUintMap restrictedAddresses;
 
     struct Checkpoint {
-        uint256 spentAmount;
+        uint256 lastSpend;
         uint256 nonce;
     }
 
     mapping(address => Checkpoint) checkpoints;
 
-    uint256 monthlyTransferFraction;
-    uint256 startTime;
+    uint256 monthlyFraction;
+    uint256 immutable startTime;
+    uint256 immutable period;
 
     constructor() {
         startTime = block.timestamp;
+        period = 30 days;
+    }
+
+    function setMonthlyTransferFraction(uint256 fraction) public onlyOwner {
+        require(fraction <= 10 ** 6, "maximum fraction is 10**6 (equal to 100%)");
+        monthlyFraction = fraction;
     }
 
     // restricted addresses
@@ -32,23 +39,43 @@ abstract contract TransferControl is ERC20, Ownable {
         restrictedAddresses.remove(addr);
     }
 
-
-    function canSpend(address addr) public view returns(uint256) {
-        return isRestricted(addr) ?
-            restrictedAddresses.get(addr) :
-            balanceOf(addr) * monthlyTransferFraction / 10 ** 6 - 
-                checkpoints[addr].spentAmount;
-    }
-
     function isRestricted(address addr) public view returns(bool) {
         return restrictedAddresses.contains(addr);
     }
 
+    function canSpend(address addr) public view returns(uint256 amount) {
+        if (isRestricted(addr)){
+            return restrictedAddresses.get(addr);
+        } else {
+            if(monthlyFraction == 10 ** 6){
+                return balanceOf(addr);
+            } else {
+                uint256 monthlyAmount = balanceOf(addr) * monthlyFraction / 10 ** 6;
+                return checkpoints[addr].nonce != (block.timestamp - startTime) / period ?
+                    monthlyAmount :
+                    monthlyAmount - checkpoints[addr].lastSpend;
+            }
+        }
+    }
+
     function _spend(address addr, uint256 amount) internal {
+        uint256 spendableAmount;
         if(isRestricted(addr)) {
-            uint256 spendableAmount = restrictedAddresses.get(addr);
+            spendableAmount = restrictedAddresses.get(addr);
             require(amount <= spendableAmount, "amount exceeds spend limit");
             restrictedAddresses.set(addr, spendableAmount - amount);
+        } else {
+            if(monthlyFraction != 10 ** 6) {
+                uint256 monthlyAmount = balanceOf(addr) * monthlyFraction / 10 ** 6;
+                uint256 currentNonce = (block.timestamp - startTime) / period;
+                if(checkpoints[addr].nonce == currentNonce) {
+                    spendableAmount = monthlyAmount - checkpoints[addr].lastSpend;
+                } else {
+                    spendableAmount = monthlyAmount;
+                }
+                require(spendableAmount <= amount, "amount exceeds spend limit");
+                checkpoints[addr] = Checkpoint(amount, currentNonce);
+            }
         }
     }
 
@@ -56,8 +83,7 @@ abstract contract TransferControl is ERC20, Ownable {
         internal
         override
     {
+        _spend(from, amount);
         super._beforeTokenTransfer(from, to, amount);
     }
-
-
 }
