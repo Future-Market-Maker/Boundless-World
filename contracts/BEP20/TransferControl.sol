@@ -10,25 +10,25 @@ abstract contract TransferControl is ERC20, Ownable {
 
     EnumerableMap.AddressToUintMap restrictedAddresses;
 
-    struct Checkpoint {
-        uint256 lastSpend;
+    struct Period {
+        uint256 spent;
         uint256 nonce;
     }
 
-    mapping(address => Checkpoint) checkpoints;
+    mapping(address => Period) checkpoints;
 
-    uint256 monthlyFraction;
+    uint256 periodFraction;
     uint256 immutable startTime;
-    uint256 immutable period;
+    uint256 immutable periodTime;
 
     constructor() {
         startTime = block.timestamp;
-        period = 30 days;
+        periodTime = 30 days;
     }
 
-    function setMonthlyTransferFraction(uint256 fraction) public onlyOwner {
+    function setperiodTransferFraction(uint256 fraction) public onlyOwner {
         require(fraction <= 10 ** 6, "maximum fraction is 10**6 (equal to 100%)");
-        monthlyFraction = fraction;
+        periodFraction = fraction;
     }
 
     // restricted addresses
@@ -47,34 +47,31 @@ abstract contract TransferControl is ERC20, Ownable {
         if (isRestricted(addr)){
             return restrictedAddresses.get(addr);
         } else {
-            if(monthlyFraction == 10 ** 6){
+            if(periodFraction == 10 ** 6){
                 return balanceOf(addr);
             } else {
-                uint256 monthlyAmount = balanceOf(addr) * monthlyFraction / 10 ** 6;
-                return checkpoints[addr].nonce != (block.timestamp - startTime) / period ?
-                    monthlyAmount :
-                    monthlyAmount - checkpoints[addr].lastSpend;
+                uint256 periodAmount = balanceOf(addr) * periodFraction / 10 ** 6;
+                return checkpoints[addr].nonce != (block.timestamp - startTime) / periodTime ?
+                    periodAmount :
+                    periodAmount - checkpoints[addr].spent;
             }
         }
     }
 
     function _spend(address addr, uint256 amount) internal {
-        uint256 spendableAmount;
         if(isRestricted(addr)) {
-            spendableAmount = restrictedAddresses.get(addr);
+            uint256 spendableAmount = restrictedAddresses.get(addr);
             require(amount <= spendableAmount, "amount exceeds spend limit");
             restrictedAddresses.set(addr, spendableAmount - amount);
         } else {
-            if(monthlyFraction != 10 ** 6) {
-                uint256 monthlyAmount = balanceOf(addr) * monthlyFraction / 10 ** 6;
-                uint256 currentNonce = (block.timestamp - startTime) / period;
+            if(periodFraction != 10 ** 6) {
+                uint256 periodAmount = balanceOf(addr) * periodFraction / 10 ** 6;
+                uint256 currentNonce = (block.timestamp - startTime) / periodTime;
                 if(checkpoints[addr].nonce == currentNonce) {
-                    spendableAmount = monthlyAmount - checkpoints[addr].lastSpend;
-                } else {
-                    spendableAmount = monthlyAmount;
+                    amount += checkpoints[addr].spent;
                 }
-                require(spendableAmount <= amount, "amount exceeds spend limit");
-                checkpoints[addr] = Checkpoint(amount, currentNonce);
+                require(amount <= periodAmount, "amount exceeds period spend limit");
+                checkpoints[addr] = Period(amount, currentNonce);
             }
         }
     }
