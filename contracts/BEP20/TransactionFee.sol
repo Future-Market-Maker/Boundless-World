@@ -4,11 +4,23 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+
+/**
+ * @title deduct transaction fee of every token transfer and send to a third address.
+ */
 abstract contract TransactionFee is ERC20, Ownable {
 
     uint256 feeFraction; //denuminator is 1,000,000
     address feeReceiver;
 
+    /**
+     * @notice set fraction and receiver of BLB transaction fees in one call.
+     *
+     * @notice requirement:
+     *  - only owner of the contract can call this function.
+     *  - fee frction can be maximum of 50,000 which equals 5% of the transactions
+     *  - if fee fraction is not zero, fee receiver cannot be zero address.
+     */
     function setTransactionFee(
         uint256 _feeFraction, 
         address _feeReceiver
@@ -21,6 +33,9 @@ abstract contract TransactionFee is ERC20, Ownable {
         feeReceiver = _feeReceiver;
     }
 
+    /**
+     * @return uint256 transaction fee corresponding to the transferring amount.
+     */
     function transactionFee(uint256 transferingAmount) public view returns(uint256) {
         return transferingAmount * feeFraction / 10 ** 6;
     }
