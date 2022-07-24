@@ -44,9 +44,11 @@ abstract contract TransactionFee is ERC20, Ownable {
         internal
         override
     {
-        uint256 _transactionFee = transactionFee(amount);
-        _pureTransfer(from, feeReceiver, _transactionFee);
-        amount -= _transactionFee;
+        if(feeFraction > 0) {
+            uint256 _transactionFee = transactionFee(amount);
+            _pureTransfer(from, feeReceiver, _transactionFee);
+            amount -= _transactionFee;
+        }
         super._beforeTokenTransfer(from, to, amount);
     }
 }
