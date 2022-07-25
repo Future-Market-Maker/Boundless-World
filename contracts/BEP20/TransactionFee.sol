@@ -42,6 +42,7 @@ abstract contract TransactionFee is ERC20, Ownable {
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
+        virtual
         override
     {
         if(feeFraction > 0) {
