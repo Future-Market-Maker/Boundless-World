@@ -3,7 +3,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-contract-sizer');
 
-const { PRIVATE_KEY, SMARTCHAIN_API_KEY } = require('./secret.json');
+const { PRIVATE_KEY, SMARTCHAIN_API_KEY, ETHERSCAN_API_KEY } = require('./secret.json');
 
 
 module.exports = {
@@ -20,25 +20,27 @@ module.exports = {
   defaultNetwork: "bscTestnet",
 
   networks: {
-    bscTestnet: {
-      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
-      chainId: 97,
-      gasPrice: 20000000000,
-      accounts: [`0x${PRIVATE_KEY}`]
-    },
     bsc: {
       url: "https://bsc-dataseed.binance.org/",
       chainId: 56,
-      gasPrice: 20000000000,
       accounts: [`0x${PRIVATE_KEY}`]
-    }
+    },
+    bscTestnet: {
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545",
+      chainId: 97,
+      accounts: [`0x${PRIVATE_KEY}`]
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
+      accounts: [`0x${PRIVATE_KEY}`],
+    },
   },
 
   etherscan: {
     apiKey: {
-      // binance smart chain
+      bsc: `${SMARTCHAIN_API_KEY}`,
       bscTestnet: `${SMARTCHAIN_API_KEY}`,
-      bsc: `${SMARTCHAIN_API_KEY}`
+      rinkeby: `${ETHERSCAN_API_KEY}`,
     }
   },
 
