@@ -1,3 +1,4 @@
 {
-    "BEP20_1" : "https://testnet.bscscan.com/address/0x50724849ee6F5cF087347A65EbC763c832ce9DE9#code"
+    "BEP20_1" : "https://testnet.bscscan.com/address/0x50724849ee6F5cF087347A65EbC763c832ce9DE9#code",
+    "BEP20_2" : "https://rinkeby.etherscan.io/address/0x314FbBFC5c9Db19BC8F8981781D326A9bA76508f#code"
 }
