@@ -63,20 +63,15 @@ contract BnbStaking is Ownable {
     event Withdraw(address indexed user, uint256 amount);
     event EmergencyWithdraw(address indexed user, uint256 amount);
 
-    constructor(
-        IERC20 _lp,
-        IERC20 _rewardToken,
-        uint256 _rewardPerBlock,
-        uint256 _startBlock,
-        uint256 _bonusEndBlock,
-        address _adminAddress
-    ) {
-        rewardToken = _rewardToken;
-        rewardPerBlock = _rewardPerBlock;
-        startBlock = _startBlock;
-        bonusEndBlock = _bonusEndBlock;
-        adminAddress = _adminAddress;
-        WBNB = 0xc778417E063141139Fce010982780140Aa0cD5Ab; // on rinkeby
+    constructor() {
+        IERC20 _lp = IERC20(0xaC424337CF073fA0A3e0dec0C3DA83B8cc3c9f39); // LP on rinkeby
+        rewardToken = IERC20(0x314FbBFC5c9Db19BC8F8981781D326A9bA76508f); // BLB on rinkeby
+        WBNB = 0xc778417E063141139Fce010982780140Aa0cD5Ab; // WBNB on rinkeby
+
+        rewardPerBlock = 10 ** 12; // equals 0.0001 %
+        startBlock = block.number + 1;
+        bonusEndBlock = startBlock + 10 ** 5;
+        adminAddress = msg.sender;
 
         // staking pool
         poolInfo.push(PoolInfo({lpToken: _lp, allocPoint: 1000, lastRewardBlock: startBlock, accCakePerShare: 0}));

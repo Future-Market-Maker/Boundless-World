@@ -1,4 +1,6 @@
 {
     "BEP20_1" : "https://testnet.bscscan.com/address/0x50724849ee6F5cF087347A65EbC763c832ce9DE9#code",
-    "BEP20_2" : "https://rinkeby.etherscan.io/address/0x314FbBFC5c9Db19BC8F8981781D326A9bA76508f#code"
+    "BEP20_2" : "https://rinkeby.etherscan.io/address/0x314FbBFC5c9Db19BC8F8981781D326A9bA76508f#code",
+    "LP_1" : "https://rinkeby.etherscan.io/address/0xaC424337CF073fA0A3e0dec0C3DA83B8cc3c9f39#code",
+    "BNBStaking" : "https://rinkeby.etherscan.io/address/0x76a90A822b4c797C0BfaED9453445241e5553D00#code"
 }
