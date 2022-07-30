@@ -2,13 +2,15 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 
 /**
  * @title deduct transaction fee of every token transfer and send to a third address.
  */
-abstract contract TransactionFee is ERC20, Ownable {
+abstract contract TransactionFee is ERC20, AccessControl {
+
+    bytes32 public constant FEE_SETTER = keccak256("FEE_SETTER");
 
     uint256 feeFraction; // nomerator of transaction fee which denuminator is 1,000,000
     uint256 feeAmount;   // independent transaction fee for every token transfer
@@ -27,7 +29,7 @@ abstract contract TransactionFee is ERC20, Ownable {
         uint256 _feeAmount,
         uint256 _feeFraction, 
         address _feeReceiver
-    ) public onlyOwner {
+    ) public onlyRole(FEE_SETTER) {
         require(
             _feeFraction == 0 || _feeAmount == 0,
             "cannot have feeAmount and feeFraction at the same time"

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 
 /**
@@ -13,10 +13,14 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
  * @notice owner of the contract can restrict every desired address and also 
  * determine the a spend limit for all users.
  */
-abstract contract TransferControl is ERC20, Ownable {
+abstract contract TransferControl is ERC20, AccessControl {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     EnumerableMap.AddressToUintMap restrictedAddresses;
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant TRANSFER_LIMIT_SETTER = keccak256("TRANSFER_LIMIT_SETTER");
+    bytes32 public constant RESTRICTOR_ROLE = keccak256("RESTRICTOR_ROLE");
 
     struct Period {
         uint256 spent;
@@ -45,7 +49,10 @@ abstract contract TransferControl is ERC20, Ownable {
      *  - only owner of contract can call this function.
      *  - maximum fraction can be 10**6 (equal to 100%).
      */
-    function setperiodTransferFraction(uint256 fraction) public onlyOwner {
+    function setperiodTransferFraction(uint256 fraction) 
+        public 
+        onlyRole(TRANSFER_LIMIT_SETTER) 
+    {
         require(fraction <= 10 ** 6, "maximum fraction is 10**6 (equal to 100%)");
         periodFraction = fraction;
     }
@@ -58,9 +65,9 @@ abstract contract TransferControl is ERC20, Ownable {
      * @param amount restricted spendable amount.
      *
      * @notice require:
-     *  - only owner of contract can call this function.
+     *  - only RESTRICTOR_ROLE address can call this function.
      */
-    function restrict(address addr, uint256 amount) public onlyOwner {
+    function restrict(address addr, uint256 amount) public onlyRole(RESTRICTOR_ROLE) {
         restrictedAddresses.set(addr, amount);
     }
 
@@ -72,9 +79,9 @@ abstract contract TransferControl is ERC20, Ownable {
      * @param addr the address that is going to be destricted.
      *
      * @notice require:
-     *  - only owner of contract can call this function.
+     *  - only RESTRICTOR_ROLE address can call this function.
      */
-    function destrict(address addr) public onlyOwner {
+    function destrict(address addr) public onlyRole(RESTRICTOR_ROLE) {
         restrictedAddresses.remove(addr);
     }
 
@@ -135,7 +142,7 @@ abstract contract TransferControl is ERC20, Ownable {
         virtual
         override
     {
-        if(_msgSender() != owner()) {
+        if(!hasRole(MINTER_ROLE, _msgSender())) {
             _spend(from, amount);
         }
         super._beforeTokenTransfer(from, to, amount);
