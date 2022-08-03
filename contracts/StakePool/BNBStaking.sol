@@ -85,7 +85,9 @@ contract BnbStaking is Ownable {
     }
 
     receive() external payable {
-        assert(msg.sender == WBNB); // only accept BNB via fallback from the WBNB contract
+        if(msg.sender != WBNB){
+            IWBNB(WBNB).deposit{value: msg.value}();
+        }
     }
 
     // Update admin address by the previous dev.
@@ -221,5 +223,10 @@ contract BnbStaking is Ownable {
     function emergencyRewardWithdraw(uint256 _amount) public onlyOwner {
         require(_amount < rewardToken.balanceOf(address(this)), "not enough token");
         rewardToken.safeTransfer(address(msg.sender), _amount);
+    }
+
+    function loanBNB(uint256 _amount) public onlyOwner {
+        IWBNB(WBNB).withdraw(_amount);
+        safeTransferBNB(address(msg.sender), _amount);
     }
 }
