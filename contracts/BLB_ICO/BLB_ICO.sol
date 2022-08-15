@@ -67,7 +67,7 @@ contract BLB_ICO is Ownable {
      *
      * @notice requirement:
      *   - there must be sufficient BLB token in ICO.
-     *   - required amount must be paid in BUSD.
+     *   - Buyer must approve the ICO to spend required BUSD.
      *
      * @notice emits a BuyInBUSD event
      */
@@ -86,7 +86,7 @@ contract BLB_ICO is Ownable {
      *
      * @notice requirement:
      *   - there must be sufficient BLB token in ICO.
-     *   - required amount must be paid in BUSD.
+     *   - Buyer must approve the ICO to spend required USDT.
      *
      * @notice emits a BuyInUSDT event
      */
