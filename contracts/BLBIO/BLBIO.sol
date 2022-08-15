@@ -9,7 +9,11 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface.sol";
 /**
  * @title BLB Initial Offering
  *
- * @notice Initial BLB Token Offering.
+ * @dev BLB Token is offered in BNB, BUSD and USDT.
+ * @dev the prices are set in USD and calculated to corresponding BNB in 
+ *   every buy transaction via chainlink price feed aggregator.
+ * @dev since solidity does not support floating variables, all prices are
+ *   multiplied by 10^18 to embrace decimals.
  */
 contract BLBIO is Ownable {
 
