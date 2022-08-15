@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface.sol";
 
-contract BLBMarket is Ownable {
+contract BLB_ICO is Ownable {
 
     IERC20 public BLB;
     IERC20 public BUSD;
