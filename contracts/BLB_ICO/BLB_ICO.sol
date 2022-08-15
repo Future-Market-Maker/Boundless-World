@@ -20,6 +20,7 @@ contract BLB_ICO is Ownable {
         BLB = IERC20(0x314FbBFC5c9Db19BC8F8981781D326A9bA76508f); //BLB test on rinkeby
         BUSD = IERC20(0x76a90A822b4c797C0BfaED9453445241e5553D00);//simple ERC20 on rinkeby
         USDT = IERC20(0x5a47B08A3e5058CF3b68b583851CCf585718AE44);//simple ERC20 on rinkeby
+        set_priceInUSD(10 ** 18); // equals to 1 USD
     }
 
     /**
@@ -77,7 +78,7 @@ contract BLB_ICO is Ownable {
      *   - there must be sufficient BLB token in ICO.
      *   - required amount must be paid in BUSD.
      */
-    function buyInUSDT(uint256 amount) public payable {
+    function buyInUSDT(uint256 amount) public {
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
         BUSD.transferFrom(msg.sender, address(this), priceInUSD * amount / 10**18);        
         BLB.transfer(msg.sender, amount);       
