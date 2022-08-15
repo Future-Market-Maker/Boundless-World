@@ -33,9 +33,6 @@ contract BLB_ICO is Ownable {
      * @return price of the token in BNB corresponding to the USD price.
      *
      * @notice multiplied by 10^18.
-     *
-     * @notice requirement:
-     *   - only owner of the contract can call this function.
      */
     function priceInBNB() public view returns(uint256) {
         return uint256(AGGREGATOR_DAI_ETH.latestAnswer())
@@ -53,6 +50,8 @@ contract BLB_ICO is Ownable {
      * @notice requirement:
      *   - there must be sufficient BLB token in ICO.
      *   - required amount must be paid in BNB.
+     *
+     * @notice emits a BuyInBNB event
      */
     function buyInBNB(uint256 amount) public payable {
         require(msg.value >= amount * priceInBNB() * 98 / 10**20, "insufficient fee");
@@ -69,6 +68,8 @@ contract BLB_ICO is Ownable {
      * @notice requirement:
      *   - there must be sufficient BLB token in ICO.
      *   - required amount must be paid in BUSD.
+     *
+     * @notice emits a BuyInBUSD event
      */
     function buyInBUSD(uint256 amount) public {
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
@@ -86,6 +87,8 @@ contract BLB_ICO is Ownable {
      * @notice requirement:
      *   - there must be sufficient BLB token in ICO.
      *   - required amount must be paid in BUSD.
+     *
+     * @notice emits a BuyInUSDT event
      */
     function buyInUSDT(uint256 amount) public {
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
@@ -97,24 +100,28 @@ contract BLB_ICO is Ownable {
 
 
     /**
-    * @dev set ticket price in USD;
-    *
-    * @notice multiplied by 10^18.
-    *
-    * @notice requirement:
-    *   - only owner of the contract can call this function.
-    */
+     * @dev set ticket price in USD;
+     *
+     * @notice multiplied by 10^18.
+     *
+     * @notice requirement:
+     *   - only owner of the contract can call this function.
+     *
+     * @notice emits a SetPriceInUSD event
+     */
     function setPriceInUSD(uint256 _priceInUSD) public onlyOwner {
         priceInUSD = _priceInUSD;
         emit SetPriceInUSD(_priceInUSD);
     }
 
     /**
-    * @dev withdraw ERC20 tokens from the contract.
-    *
-    * @notice requirement:
-    *   - only owner of the contract can call this function.
-    */
+     * @dev withdraw ERC20 tokens from the contract.
+     *
+     * @notice requirement:
+     *   - only owner of the contract can call this function.
+     *
+     * @notice emits a Withdraw event
+     */
     function withdraw(address tokenAddr, uint256 amount) public onlyOwner {
         IERC20(tokenAddr).transfer(msg.sender, amount);
         emit Withdraw(tokenAddr, amount);
@@ -122,11 +129,13 @@ contract BLB_ICO is Ownable {
 
 
     /**
-    * @dev withdraw BNB from the contract.
-    *
-    * @notice requirement:
-    *   - only owner of the contract can call this function.
-    */
+     * @dev withdraw BNB from the contract.
+     *
+     * @notice requirement:
+     *   - only owner of the contract can call this function.
+     *
+     * @notice emits a Withdraw event(address zero as the BNB token)
+     */
     function withdraw(uint256 amount) public onlyOwner {
         payable(msg.sender).transfer(amount);
         emit Withdraw(address(0), amount);
