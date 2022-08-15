@@ -48,7 +48,7 @@ contract BLB_ICO is Ownable {
      *   - required amount must be paid in BNB.
      */
     function buyInBNB(uint256 amount) public payable {
-        require(msg.value >= amount * priceInBNB() /100*98, "insufficient fee");
+        require(msg.value >= amount * priceInBNB() * 98 / 10**20, "insufficient fee");
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
         BLB.transfer(msg.sender, amount);
     }
