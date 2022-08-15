@@ -15,9 +15,9 @@ contract BLB_ICO is Ownable {
     AggregatorInterface constant AGGREGATOR_DAI_ETH_18 = AggregatorInterface(0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D);
 
     constructor() {
-        BLB = IERC20(address(0));
-        BUSD = IERC20(address(0));
-        USDT = IERC20(address(0));
+        BLB = IERC20(0x314FbBFC5c9Db19BC8F8981781D326A9bA76508f); //BLB test on rinkeby
+        BUSD = IERC20(0x76a90A822b4c797C0BfaED9453445241e5553D00);//simple ERC20 on rinkeby
+        USDT = IERC20(0x5a47B08A3e5058CF3b68b583851CCf585718AE44);//simple ERC20 on rinkeby
     }
 
     /**
