@@ -9,6 +9,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  */
 contract StakePool {
     
+    mapping (uint256 => uint256) periodToAPR;
+
+
+
+
+
     IERC20 immutable BLB = IERC20(address(0));
 
     uint256 totalProfits;
