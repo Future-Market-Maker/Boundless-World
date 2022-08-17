@@ -34,7 +34,7 @@ abstract contract TransactionFee is ERC20, AccessControl {
             _feeFraction == 0 || _feeAmount == 0,
             "cannot have feeAmount and feeFraction at the same time"
         );
-        require(_feeFraction <= 5 * 10 ** 4, "your can set up to 5% transactionFee");
+        require(_feeFraction <= 5 * 10 ** 4, "you can set up to 5% transactionFee");
         if(feeFraction > 0 || _feeAmount > 0){
             require(_feeReceiver != address(0), "feeReceiver cannot be zero address");
         }
