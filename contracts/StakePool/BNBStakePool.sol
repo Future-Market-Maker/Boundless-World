@@ -40,6 +40,15 @@ contract BNBStakePool is Pausable, Ownable {
         uint256 saveBLB; //Percent
     }
 
+    event NewInvest(
+        address indexed investor, 
+        uint256 indexed investId, 
+        uint256 amount, 
+        uint256 start,
+        uint256 end,
+        uint256 profit
+    );
+
     constructor() {
         rewardPlans[1 days]  = 1   * 10 ** 18;
         rewardPlans[7 days]  = 10  * 10 ** 18;
@@ -53,11 +62,11 @@ contract BNBStakePool is Pausable, Ownable {
         });
     }
 
-    function pendingWithdrawal(address userAddr, uint256 investmentId) public view returns(
+    function pendingWithdrawal(address investor, uint256 investmentId) public view returns(
         uint256 amountBNB,
         uint256 amountBLB
     ) {
-        Investment storage invest = investments[userAddr][investmentId];
+        Investment storage invest = investments[investor][investmentId];
 
         require(
             invest.claimTime == 0,
@@ -97,19 +106,18 @@ contract BNBStakePool is Pausable, Ownable {
     function newInvest(uint256 duration) public payable whenNotPaused {
         require(rewardPlans[duration] != 0, "there is no plan by this duration");
 
+        address investor = msg.sender;
         uint256 amount = msg.value;
+        uint256 start = block.timestamp;
+        uint256 end = block.timestamp + duration;
         uint256 profit = amount * rewardPlans[duration] / 10 ** 18;
 
-        investments[msg.sender].push(Investment(
-            amount, 
-            block.timestamp, 
-            block.timestamp + duration, 
-            profit,
-            0
-        ));
+        investments[investor].push(Investment(amount, start, end, profit, 0));
 
         totalInvestingBNB += amount;
         totalPendingBLB += profit;
+
+        emit NewInvest(investor, investments[investor].length-1, amount, start, end, profit);
     }
 
     function withdraw(uint256 investmentId) public {
