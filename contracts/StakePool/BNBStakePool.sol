@@ -49,11 +49,23 @@ contract BNBStakePool is Pausable, Ownable {
         uint256 profit
     );
 
+    event Withdraw(
+        address indexed investor, 
+        uint256 indexed investId, 
+        uint256 amountBNB, 
+        uint256 amountBLB
+    );
+
+    event SetPlan(
+        uint256 indexed duration,
+        uint256 profit
+    );
+
     constructor() {
-        rewardPlans[1 days]  = 1   * 10 ** 18;
-        rewardPlans[7 days]  = 10  * 10 ** 18;
-        rewardPlans[30 days] = 50  * 10 ** 18;
-        rewardPlans[90 days] = 180 * 10 ** 18;
+        setPlan({duration : 1  days, profit: 1   * 10 ** 18});
+        setPlan({duration : 7  days, profit: 10  * 10 ** 18});
+        setPlan({duration : 30 days, profit: 50  * 10 ** 18});
+        setPlan({duration : 90 days, profit: 180 * 10 ** 18});
 
         setCheckpoints({
             passTime1 : 0 , saveBNB1 : 80 , saveBLB1 : 0,
@@ -136,6 +148,8 @@ contract BNBStakePool is Pausable, Ownable {
 
         totalInvestingBNB -= invest.amount;
         totalPendingBLB -= invest.profit;
+
+        emit Withdraw(claimant, investmentId, amountBNB, amountBLB);
     }
 
     function setCheckpoints(
@@ -146,6 +160,10 @@ contract BNBStakePool is Pausable, Ownable {
         checkPoint1 = Checkpoint(passTime1, saveBNB1, saveBLB1);
         checkPoint1 = Checkpoint(passTime2, saveBNB2, saveBLB2);
         checkPoint1 = Checkpoint(passTime3, saveBNB3, saveBLB3);
+    }
+
+    function setPlan(uint256 duration, uint256 profit) public onlyOwner {
+        rewardPlans[duration]  = profit;
     }
 
     function loanBNB(address borrower, uint256 amount) public onlyOwner {
