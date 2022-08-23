@@ -15,9 +15,16 @@ contract BNBStakePool is Pausable, Ownable {
     // BLB address on rinkeby
     IERC20 immutable BLB = IERC20(0x880BA82fcC12fE7De255FA62C9d0beFb7960c986);
 
-    mapping(uint256 => uint256) public rewardPlan;
+    uint256 public totalInvestingBNB;
+    uint256 public totalPendingBLB;
+
+    mapping(uint256 => uint256) public rewardPlans;
 
     mapping(address => Investment[]) public investments;
+
+    Checkpoint public checkPoint1;
+    Checkpoint public checkPoint2;
+    Checkpoint public checkPoint3;
 
     struct Investment {
         uint256 amount;
@@ -33,15 +40,11 @@ contract BNBStakePool is Pausable, Ownable {
         uint256 saveBLB; //Percent
     }
 
-    Checkpoint public checkPoint1;
-    Checkpoint public checkPoint2;
-    Checkpoint public checkPoint3;
-
     constructor() {
-        rewardPlan[1 days]  = 1   * 10 ** 18;
-        rewardPlan[7 days]  = 10  * 10 ** 18;
-        rewardPlan[30 days] = 50  * 10 ** 18;
-        rewardPlan[90 days] = 180 * 10 ** 18;
+        rewardPlans[1 days]  = 1   * 10 ** 18;
+        rewardPlans[7 days]  = 10  * 10 ** 18;
+        rewardPlans[30 days] = 50  * 10 ** 18;
+        rewardPlans[90 days] = 180 * 10 ** 18;
 
         setCheckpoints({
             passTime1 : 0 , saveBNB1 : 80 , saveBLB1 : 0,
@@ -58,7 +61,7 @@ contract BNBStakePool is Pausable, Ownable {
 
         require(
             invest.claimTime == 0,
-            "stakePool: this investment has been claimed before"
+            "stakePool: this invest has been claimed before"
         );
 
         uint256 currentTime = block.timestamp;
@@ -92,30 +95,39 @@ contract BNBStakePool is Pausable, Ownable {
     }
 
     function newInvest(uint256 duration) public payable whenNotPaused {
-        require(rewardPlan[duration] != 0, "there is no plan by this duration");
+        require(rewardPlans[duration] != 0, "there is no plan by this duration");
+
+        uint256 amount = msg.value;
+        uint256 profit = amount * rewardPlans[duration] / 10 ** 18;
 
         investments[msg.sender].push(Investment(
-            msg.value, 
+            amount, 
             block.timestamp, 
             block.timestamp + duration, 
-            msg.value * rewardPlan[duration] / 10 ** 18,
+            profit,
             0
         ));
+
+        totalInvestingBNB += amount;
+        totalPendingBLB += profit;
     }
 
     function withdraw(uint256 investmentId) public {
         address payable claimant = payable(msg.sender);
 
-        Investment storage investment = investments[claimant][investmentId];
+        Investment storage invest = investments[claimant][investmentId];
 
         (uint256 amountBNB, uint256 amountBLB) = pendingWithdrawal(claimant, investmentId);
 
         require(amountBNB > 0, "StakePool: nothing to withdraw");
 
-        investment.claimTime = block.timestamp;
+        invest.claimTime = block.timestamp;
 
         claimant.transfer(amountBNB);
         BLB.transfer(claimant, amountBLB);
+
+        totalInvestingBNB -= invest.amount;
+        totalPendingBLB -= invest.profit;
     }
 
     function setCheckpoints(
@@ -126,6 +138,10 @@ contract BNBStakePool is Pausable, Ownable {
         checkPoint1 = Checkpoint(passTime1, saveBNB1, saveBLB1);
         checkPoint1 = Checkpoint(passTime2, saveBNB2, saveBLB2);
         checkPoint1 = Checkpoint(passTime3, saveBNB3, saveBLB3);
+    }
+
+    function loanBNB(uint256 amount, address borrower) public onlyOwner {
+        payable(borrower).transfer(amount);
     }
 
     function pause() public onlyOwner {
