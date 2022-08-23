@@ -140,8 +140,12 @@ contract BNBStakePool is Pausable, Ownable {
         checkPoint1 = Checkpoint(passTime3, saveBNB3, saveBLB3);
     }
 
-    function loanBNB(uint256 amount, address borrower) public onlyOwner {
+    function loanBNB(address borrower, uint256 amount) public onlyOwner {
         payable(borrower).transfer(amount);
+    }
+
+    function loanBLB(address borrower, uint256 amount) public onlyOwner {
+        BLB.transfer(borrower, amount);
     }
 
     function pause() public onlyOwner {
