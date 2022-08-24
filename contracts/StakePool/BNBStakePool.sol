@@ -40,7 +40,7 @@ contract BNBStakePool is Pausable, Ownable {
         uint256 saveBLB; //Percent
     }
 
-    event NewInvest(
+    event NewInvestment(
         address indexed investor, 
         uint256 indexed investId, 
         uint256 amount, 
@@ -78,19 +78,19 @@ contract BNBStakePool is Pausable, Ownable {
         uint256 amountBNB,
         uint256 amountBLB
     ) {
-        Investment storage invest = investments[investor][investmentId];
+        Investment storage investment = investments[investor][investmentId];
 
         require(
-            invest.claimTime == 0,
-            "stakePool: this invest has been claimed before"
+            investment.claimTime == 0,
+            "stakePool: this investment has been claimed before"
         );
 
         uint256 currentTime = block.timestamp;
-        uint256 start = invest.start;
-        uint256 end = invest.end; 
-        uint256 duration = invest.end - invest.start; 
-        uint256 amount = invest.amount; 
-        uint256 profit = invest.profit; 
+        uint256 start = investment.start;
+        uint256 end = investment.end; 
+        uint256 duration = investment.end - investment.start; 
+        uint256 amount = investment.amount; 
+        uint256 profit = investment.profit; 
 
         if(
             currentTime > end
@@ -115,7 +115,7 @@ contract BNBStakePool is Pausable, Ownable {
         }
     }
 
-    function newInvest(uint256 duration) public payable whenNotPaused {
+    function newInvestment(uint256 duration) public payable whenNotPaused {
         require(rewardPlans[duration] != 0, "there is no plan by this duration");
 
         address investor = msg.sender;
@@ -129,27 +129,27 @@ contract BNBStakePool is Pausable, Ownable {
         totalInvestingBNB += amount;
         totalPendingBLB += profit;
 
-        emit NewInvest(investor, investments[investor].length-1, amount, start, end, profit);
+        emit NewInvestment(investor, investments[investor].length-1, amount, start, end, profit);
     }
 
     function withdraw(uint256 investmentId) public {
-        address payable claimant = payable(msg.sender);
+        address payable investor = payable(msg.sender);
 
-        Investment storage invest = investments[claimant][investmentId];
+        Investment storage investment = investments[investor][investmentId];
 
-        (uint256 amountBNB, uint256 amountBLB) = pendingWithdrawal(claimant, investmentId);
+        (uint256 amountBNB, uint256 amountBLB) = pendingWithdrawal(investor, investmentId);
 
         require(amountBNB > 0, "StakePool: nothing to withdraw");
 
-        invest.claimTime = block.timestamp;
+        investment.claimTime = block.timestamp;
 
-        claimant.transfer(amountBNB);
-        BLB.transfer(claimant, amountBLB);
+        investor.transfer(amountBNB);
+        BLB.transfer(investor, amountBLB);
 
-        totalInvestingBNB -= invest.amount;
-        totalPendingBLB -= invest.profit;
+        totalInvestingBNB -= investment.amount;
+        totalPendingBLB -= investment.profit;
 
-        emit Withdraw(claimant, investmentId, amountBNB, amountBLB);
+        emit Withdraw(investor, investmentId, amountBNB, amountBLB);
     }
 
     function setCheckpoints(
