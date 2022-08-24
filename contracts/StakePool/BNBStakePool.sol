@@ -74,10 +74,18 @@ contract BNBStakePool is Pausable, Ownable {
         });
     }
 
-    function pendingWithdrawal(address investor, uint256 investmentId) public view returns(
-        uint256 amountBNB,
-        uint256 amountBLB
-    ) {
+    function releaseTime(
+        address investor, 
+        uint256 investmentId
+    ) public view returns(uint256) {
+        return investments[investor][investmentId].end;
+    }
+
+    function pendingWithdrawal(
+        address investor, 
+        uint256 investmentId
+    ) public view returns(uint256 amountBNB, uint256 amountBLB) {
+
         Investment storage investment = investments[investor][investmentId];
 
         require(
