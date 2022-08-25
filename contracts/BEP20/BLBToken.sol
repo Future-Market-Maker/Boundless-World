@@ -5,16 +5,18 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./TransferControl.sol";
 import "./TransactionFee.sol";
 
+/**
+ * @title Boundless World (BLB) Token
+ */
 contract BLBToken is 
     ERC20, 
     ERC20Capped, 
     ERC20Burnable, 
     ERC20Permit, 
-    AccessControl,
+    Administration,
     TransferControl,
     TransactionFee
 {
@@ -24,11 +26,13 @@ contract BLBToken is
         ERC20Capped((3.69 * 10 ** 9) * 10 ** decimals())
         ERC20Permit("Boundless World") 
     {
-        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _grantRole(MINTER_ROLE, msg.sender);
-        _grantRole(FEE_SETTER, msg.sender);
-        _grantRole(TRANSFER_LIMIT_SETTER, msg.sender);
-        _grantRole(RESTRICTOR_ROLE, msg.sender);
+        address initialAdmin = 0x31FBc230BC6b8cE2eE229eCfbACCc364Da3eD7fC;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, initialAdmin);
+        _grantRole(MINTER_ROLE, initialAdmin);
+        _grantRole(FEE_SETTER, initialAdmin);
+        _grantRole(TRANSFER_LIMIT_SETTER, initialAdmin);
+        _grantRole(RESTRICTOR_ROLE, initialAdmin);
     }
 
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {

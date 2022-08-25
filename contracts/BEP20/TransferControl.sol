@@ -2,8 +2,8 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import "./Administration.sol";
 
 /**
  * @title control BLB transfers.
@@ -13,15 +13,11 @@ import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
  * @notice owner of the contract can restrict every desired address and also 
  * determine the a spend limit for all users.
  */
-abstract contract TransferControl is ERC20, AccessControl {
+abstract contract TransferControl is ERC20, Administration {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     EnumerableMap.AddressToUintMap restrictedAddresses;
-
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant TRANSFER_LIMIT_SETTER = keccak256("TRANSFER_LIMIT_SETTER");
-    bytes32 public constant RESTRICTOR_ROLE = keccak256("RESTRICTOR_ROLE");
-
+    
     struct Period {
         uint256 spent;
         uint256 nonce;
