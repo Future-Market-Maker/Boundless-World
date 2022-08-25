@@ -143,4 +143,15 @@ abstract contract TransferControl is ERC20, Administration {
         }
         super._beforeTokenTransfer(from, to, amount);
     }
+
+    function _pureTransfer(address from, address to, uint256 amount) 
+        internal 
+        virtual
+        override 
+    {
+        if(!hasRole(MINTER_ROLE, _msgSender())) {
+            _spend(from, amount);
+        }
+        super._pureTransfer(from, to, amount);
+    }
 }
