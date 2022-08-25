@@ -3,7 +3,7 @@ pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract Administration is AccessControl{
+abstract contract Administration is AccessControl{
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant TRANSFER_LIMIT_SETTER = keccak256("TRANSFER_LIMIT_SETTER");

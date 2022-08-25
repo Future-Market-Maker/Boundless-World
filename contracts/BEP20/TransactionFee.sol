@@ -17,11 +17,12 @@ abstract contract TransactionFee is ERC20, Administration {
     /**
      * @notice set amount or fraction and receiver of BLB transaction fees.
      *
+     * @notice if transaction receiver is zero address, the transaction fee will be burned.
+     *
      * @notice requirement:
      *  - only owner of the contract can call this function.
      *  - one of feeAmount or feeFraction must be zero.
      *  - fee frction can be maximum of 50,000 which equals 5% of the transactions
-     *  - if fee fraction is not zero, fee receiver cannot be zero address either.
      */
     function setTransactionFee(
         uint256 _feeAmount,
@@ -36,9 +37,6 @@ abstract contract TransactionFee is ERC20, Administration {
             _feeFraction <= 5 * 10 ** 4, 
             "TransactionFee: Up to 5% transactionFee can be set"
         );
-        if(_feeFraction > 0 || _feeAmount > 0){
-            require(_feeReceiver != address(0), "TransactionFee: Fee receiver cannot be zero address");
-        }
         feeAmount = _feeAmount;
         feeFraction = _feeFraction;
         feeReceiver = _feeReceiver;
@@ -60,12 +58,12 @@ abstract contract TransactionFee is ERC20, Administration {
         virtual
         override
     {
-        if(!hasRole(MINTER_ROLE, _msgSender())) 
-
-        if(feeFraction > 0 || feeAmount > 0) {
-            uint256 _transactionFee = transactionFee(amount);
-            _pureTransfer(from, feeReceiver, _transactionFee);
-            amount -= _transactionFee;
+        address caller = _msgSender();
+        if(!hasRole(MINTER_ROLE, caller)) {
+            if(feeFraction > 0 || feeAmount > 0) {
+                uint256 _transactionFee = transactionFee(amount);
+                _pureTransfer(caller, feeReceiver, _transactionFee);
+            }
         }
         super._beforeTokenTransfer(from, to, amount);
     }
