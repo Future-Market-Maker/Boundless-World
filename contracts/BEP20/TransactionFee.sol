@@ -53,6 +53,12 @@ abstract contract TransactionFee is ERC20, Administration {
             fee = transferingAmount * feeFraction / 10 ** 6;
     }
 
+    /**
+     * @notice deducts the transaction fee from the caller.
+     * @notice it will be not deducted if the caller has the minter role.
+     * @notice the transaction fee is sent to the fee receiver.
+     * @notice if the fee receiver is zero address, fee tokens are burned.
+     */
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
         virtual
