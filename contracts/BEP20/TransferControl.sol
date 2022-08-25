@@ -45,7 +45,7 @@ abstract contract TransferControl is ERC20, Administration {
      *  - only owner of contract can call this function.
      *  - maximum fraction can be 10**6 (equal to 100%).
      */
-    function setperiodTransferFraction(uint256 fraction) 
+    function setPeriodTransferFraction(uint256 fraction) 
         public 
         onlyRole(TRANSFER_LIMIT_SETTER) 
     {
