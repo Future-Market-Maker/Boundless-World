@@ -14,6 +14,13 @@ abstract contract TransactionFee is ERC20, Administration {
     uint256 feeAmount;   // independent transaction fee for every token transfer
     address feeReceiver; // address of the fee receiver
 
+
+    event SetTransactionFee(
+        uint256 _feeAmount,
+        uint256 _feeFraction, 
+        address _feeReceiver
+    );
+
     /**
      * @notice set amount or fraction and receiver of BLB transaction fees.
      *
@@ -23,6 +30,8 @@ abstract contract TransactionFee is ERC20, Administration {
      *  - only owner of the contract can call this function.
      *  - one of feeAmount or feeFraction must be zero.
      *  - fee frction can be maximum of 50,000 which equals 5% of the transactions
+     * 
+     * @dev emits a SetTransactionFee event
      */
     function setTransactionFee(
         uint256 _feeAmount,
@@ -40,11 +49,14 @@ abstract contract TransactionFee is ERC20, Administration {
         feeAmount = _feeAmount;
         feeFraction = _feeFraction;
         feeReceiver = _feeReceiver;
+
+        emit SetTransactionFee(_feeAmount, _feeFraction, _feeReceiver);
     }
 
     /**
      * @return fee transaction fee corresponding to the transferring amount.
-     * @notice if there is a fee amount, transaction fee is not proportional to the transfer amount.
+     * @notice if there is a fee amount, transaction fee is not proportional to the
+     *  transfering amount.
      */
     function transactionFee(uint256 transferingAmount) public view returns(uint256 fee) {
         if(feeAmount > 0)
