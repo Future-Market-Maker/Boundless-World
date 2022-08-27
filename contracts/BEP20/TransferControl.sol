@@ -12,6 +12,8 @@ import "./Administration.sol";
  * @notice some specific addresses may have restricted access to transfer.
  * @notice owner of the contract can restrict every desired address and also 
  * determine the a spend limit for all users.
+ * @notice if an address is restricted then the public periodFraction is diactivated
+ * for it
  */
 abstract contract TransferControl is ERC20, Administration {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
@@ -34,6 +36,10 @@ abstract contract TransferControl is ERC20, Administration {
         periodTime = 30 days;
     }
 
+    event SetPeriodTransferFraction(uint256 fraction);
+    event Restrict(address addr, uint256 amount);
+    event Destrict(address addr);
+
     /**
      * @notice set spend limit for period transfers.
      * @notice there is no transfer limit if fraction is 10**6.
@@ -44,6 +50,8 @@ abstract contract TransferControl is ERC20, Administration {
      * @notice require:
      *  - only owner of contract can call this function.
      *  - maximum fraction can be 10**6 (equal to 100%).
+     * 
+     * @notice emits a SetPeriodTransferFraction event.
      */
     function setPeriodTransferFraction(uint256 fraction) 
         public 
@@ -51,6 +59,8 @@ abstract contract TransferControl is ERC20, Administration {
     {
         require(fraction <= 10 ** 6, "maximum fraction is 10**6 (equal to 100%)");
         periodFraction = fraction;
+
+        emit SetPeriodTransferFraction(fraction);
     }
 
     /**
@@ -62,9 +72,12 @@ abstract contract TransferControl is ERC20, Administration {
      *
      * @notice require:
      *  - only RESTRICTOR_ROLE address can call this function.
+     * 
+     * @notice emits a Restrict event.
      */
     function restrict(address addr, uint256 amount) public onlyRole(RESTRICTOR_ROLE) {
         restrictedAddresses.set(addr, amount);
+        emit Restrict(addr, amount);
     }
 
     /**
@@ -76,6 +89,8 @@ abstract contract TransferControl is ERC20, Administration {
      *
      * @notice require:
      *  - only RESTRICTOR_ROLE address can call this function.
+     * 
+     * @notice emits a Destrict event.
      */
     function destrict(address addr) public onlyRole(RESTRICTOR_ROLE) {
         restrictedAddresses.remove(addr);
