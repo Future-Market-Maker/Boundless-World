@@ -36,7 +36,7 @@ contract BLBIO is Ownable {
 
 
     constructor() {
-        BLB = IERC20(0x314FbBFC5c9Db19BC8F8981781D326A9bA76508f); //BLB test on rinkeby
+        BLB = IERC20(0x0477de13Ed9F0d1a70Bd3e77d0D7B811DC8aF901); //BLB test on rinkeby
         BUSD = IERC20(0x5a47B08A3e5058CF3b68b583851CCf585718AE44);//simple ERC20 on rinkeby
         USDT = IERC20(0x76a90A822b4c797C0BfaED9453445241e5553D00);//simple ERC20 on rinkeby
         setPriceInUSD(10 ** 18); // equals to 1 USD
@@ -136,7 +136,7 @@ contract BLBIO is Ownable {
      *
      * @notice emits a Withdraw event
      */
-    function withdraw(address tokenAddr, uint256 amount) public onlyOwner {
+    function withdrawERC20(address tokenAddr, uint256 amount) public onlyOwner {
         IERC20(tokenAddr).transfer(msg.sender, amount);
         emit Withdraw(tokenAddr, amount);
     }
