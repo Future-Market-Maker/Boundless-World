@@ -36,8 +36,19 @@ abstract contract TransferControl is ERC20, Administration {
         periodTime = 30 days;
     }
 
+    /**
+     * @dev emits when the admin sets a new value as the periodFraction.
+     */
     event SetPeriodTransferFraction(uint256 fraction);
+
+    /**
+     * @dev emits when the admin restricts an address.
+     */
     event Restrict(address addr, uint256 amount);
+
+    /**
+     * @dev emits when the admin districts an address.
+     */
     event District(address addr);
 
     /**
