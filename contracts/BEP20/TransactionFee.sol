@@ -14,7 +14,9 @@ abstract contract TransactionFee is ERC20, Administration {
     uint256 feeAmount;   // independent transaction fee for every token transfer
     address feeReceiver; // address of the fee receiver
 
-
+    /**
+     * @dev emits when the admin sets a new transaction fee plan.
+     */
     event SetTransactionFee(
         uint256 _feeAmount,
         uint256 _feeFraction, 
