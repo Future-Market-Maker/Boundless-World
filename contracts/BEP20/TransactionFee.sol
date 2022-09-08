@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./Administration.sol";
 
 /**
- * @title deduct transaction fee of every token transfer and send to a third address.
+ * @title deduct the transaction fee of every token transfer and send it to a third address.
  */
 abstract contract TransactionFee is ERC20, Administration {
 
@@ -27,9 +27,9 @@ abstract contract TransactionFee is ERC20, Administration {
      * @notice if transaction receiver is zero address, the transaction fee will be burned.
      *
      * @notice requirement:
-     *  - only owner of the contract can call this function.
-     *  - one of feeAmount or feeFraction must be zero.
-     *  - fee frction can be maximum of 50,000 which equals 5% of the transactions
+     *  - Only the owner of the contract can call this function.
+     *  - one of the feeAmount or feeFraction must be zero.
+     *  - fee fraction can be a maximum of 50,000 which equals 5% of the transactions
      * 
      * @dev emits a SetTransactionFee event
      */
@@ -55,7 +55,7 @@ abstract contract TransactionFee is ERC20, Administration {
 
     /**
      * @return fee transaction fee corresponding to the transferring amount.
-     * @notice if there is a fee amount, transaction fee is not proportional to the
+     * @notice if there is a fee amount, the transaction fee is not proportional to the
      *  transfering amount.
      */
     function transactionFee(uint256 transferingAmount) public view returns(uint256 fee) {

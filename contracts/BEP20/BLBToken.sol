@@ -35,6 +35,16 @@ contract BLBToken is
         _grantRole(RESTRICTOR_ROLE, initialAdmin);
     }
 
+    /**
+     * Creates amount tokens and assigns them to account, increasing the total supply.
+     * 
+     * Emits a transfer event with from set to the zero address.
+     * 
+     * Requirements:
+     * 
+     * account cannot be the zero address.
+     * only role MINTER_ROLE can call this function.
+     */
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
         _mint(to, amount);
     }

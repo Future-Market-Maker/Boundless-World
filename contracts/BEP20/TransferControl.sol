@@ -11,7 +11,7 @@ import "./Administration.sol";
  * certain fraction every period(it depends on periodFraction).
  * @notice some specific addresses may have restricted access to transfer.
  * @notice owner of the contract can restrict every desired address and also 
- * determine the a spend limit for all users.
+ * determine a spending limit for all users.
  * @notice if an address is restricted then the public periodFraction is diactivated
  * for it
  */
@@ -38,7 +38,7 @@ abstract contract TransferControl is ERC20, Administration {
 
     event SetPeriodTransferFraction(uint256 fraction);
     event Restrict(address addr, uint256 amount);
-    event Destrict(address addr);
+    event District(address addr);
 
     /**
      * @notice set spend limit for period transfers.
@@ -81,18 +81,18 @@ abstract contract TransferControl is ERC20, Administration {
     }
 
     /**
-     * @notice destrict an address 
+     * @notice district an address 
      * @notice the address `addr` will be free to spend their BLB like regular
      * addresses.
      *
-     * @param addr the address that is going to be destricted.
+     * @param addr the address that is going to be districted.
      *
      * @notice require:
      *  - only RESTRICTOR_ROLE address can call this function.
      * 
-     * @notice emits a Destrict event.
+     * @notice emits a District event.
      */
-    function destrict(address addr) public onlyRole(RESTRICTOR_ROLE) {
+    function district(address addr) public onlyRole(RESTRICTOR_ROLE) {
         restrictedAddresses.remove(addr);
     }
 

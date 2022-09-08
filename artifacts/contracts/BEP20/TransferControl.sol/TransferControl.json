@@ -38,7 +38,7 @@
           "type": "address"
         }
       ],
-      "name": "Destrict",
+      "name": "District",
       "type": "event"
     },
     {
@@ -369,7 +369,7 @@
           "type": "address"
         }
       ],
-      "name": "destrict",
+      "name": "district",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
