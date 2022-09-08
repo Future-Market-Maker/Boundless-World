@@ -21,17 +21,42 @@ contract BLBIO is Ownable {
     IERC20 public BUSD;
     IERC20 public USDT;
 
+    /**
+     * @return price of the token in USD.
+     *
+     * @notice multiplied by 10^18.
+     */
     uint256 public priceInUSD;
 
 
     //aggregator on rinkeby (multiplied by 10^18)
     AggregatorInterface constant AGGREGATOR_DAI_ETH = AggregatorInterface(0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D);
 
-
+    /**
+     * @dev emits when a user buys BLB, paying in BNB.
+     */
     event BuyInBNB(uint256 indexed amountBLB, uint256 indexed amountBNB);
+
+    /**
+     * @dev emits when a user buys BLB, paying in USDT.
+     */
     event BuyInUSDT(uint256 indexed amountBLB, uint256 indexed amountUSDT);
+
+    /**
+     * @dev emits when a user buys BLB, paying in BUSD.
+     */
     event BuyInBUSD(uint256 indexed amountBLB, uint256 indexed amountBUSD);
+
+    /**
+     * @dev emits when the owner sets a new price for the BLB token (in USD).
+     */
     event SetPriceInUSD(uint256 indexed newPrice);
+
+    /**
+     * @dev emits when the owner withdraws any amount of BNB or ERC20 token.
+     *  
+     * @notice if the withdrawing token is BNB, tokenAddr equals address zero.
+     */
     event Withdraw(address indexed tokenAddr, uint256 indexed amount);
 
 
@@ -99,7 +124,7 @@ contract BLBIO is Ownable {
      * @notice multiplied by 10^18.
      *
      * @notice requirement:
-     *   - there must be sufficient BLB token in ICO.
+     *   - there must be sufficient BLB tokens in ICO.
      *   - Buyer must approve the ICO to spend required USDT.
      *
      * @notice emits a BuyInUSDT event
