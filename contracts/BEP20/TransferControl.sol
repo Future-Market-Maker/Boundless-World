@@ -2,6 +2,7 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import "./Administration.sol";
 
@@ -15,7 +16,7 @@ import "./Administration.sol";
  * @notice if an address is restricted then the public periodFraction is diactivated
  * for it
  */
-abstract contract TransferControl is ERC20, Administration {
+abstract contract TransferControl is ERC20Capped, Administration {
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     EnumerableMap.AddressToUintMap restrictedAddresses;
@@ -124,11 +125,15 @@ abstract contract TransferControl is ERC20, Administration {
      * the address's remaining period spendable amount. else the amount equals balance of the
      * address.
      * 
+     * @dev MINTER_ROLE can also be restricted so
+     * 
      * @param addr the address that is being checked.
      */
     function canSpend(address addr) public view returns(uint256 amount) {
         if (isRestricted(addr)){
             return restrictedAddresses.get(addr);
+        } else if(hasRole(MINTER_ROLE, _msgSender())) {
+            return cap() - totalSupply();
         } else {
             if(periodFraction == 10 ** 6){
                 return balanceOf(addr);
@@ -147,7 +152,7 @@ abstract contract TransferControl is ERC20, Administration {
             require(amount <= spendableAmount, "amount exceeds spend limit");
             restrictedAddresses.set(addr, spendableAmount - amount);
         } else {
-            if(periodFraction != 10 ** 6) {
+            if(periodFraction != 10 ** 6 && !hasRole(MINTER_ROLE, _msgSender())) {
                 uint256 periodAmount = balanceOf(addr) * periodFraction / 10 ** 6;
                 uint256 currentNonce = (block.timestamp - startTime) / periodTime;
                 if(checkpoints[addr].nonce == currentNonce) {
@@ -164,9 +169,8 @@ abstract contract TransferControl is ERC20, Administration {
         virtual
         override
     {
-        if(!hasRole(MINTER_ROLE, _msgSender())) {
-            _spend(from, amount);
-        }
+        _spend(from, amount);
+
         super._beforeTokenTransfer(from, to, amount);
     }
 
@@ -175,9 +179,8 @@ abstract contract TransferControl is ERC20, Administration {
         virtual
         override 
     {
-        if(!hasRole(MINTER_ROLE, _msgSender())) {
-            _spend(from, amount);
-        }
+        _spend(from, amount);
+        
         super._pureTransfer(from, to, amount);
     }
 }
