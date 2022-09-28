@@ -30,7 +30,7 @@ contract BLBToken is
 
         _grantRole(DEFAULT_ADMIN_ROLE, initialAdmin);
         _grantRole(MINTER_ROLE, initialAdmin);
-        _grantRole(FEE_SETTER, initialAdmin);
+        _grantRole(TRANSACTION_FEE_SETTER, initialAdmin);
         _grantRole(TRANSFER_LIMIT_SETTER, initialAdmin);
         _grantRole(RESTRICTOR_ROLE, initialAdmin);
     }

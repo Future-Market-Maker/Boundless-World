@@ -188,7 +188,7 @@
     },
     {
       "inputs": [],
-      "name": "FEE_SETTER",
+      "name": "TRANSACTION_FEE_SETTER",
       "outputs": [
         {
           "internalType": "bytes32",
