@@ -188,19 +188,6 @@
     },
     {
       "inputs": [],
-      "name": "TRANSACTION_FEE_SETTER",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "MINTER_ROLE",
       "outputs": [
         {
@@ -215,6 +202,19 @@
     {
       "inputs": [],
       "name": "RESTRICTOR_ROLE",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "TRANSACTION_FEE_SETTER",
       "outputs": [
         {
           "internalType": "bytes32",
@@ -318,6 +318,19 @@
         {
           "internalType": "uint256",
           "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "cap",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
           "type": "uint256"
         }
       ],

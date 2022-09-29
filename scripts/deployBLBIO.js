@@ -1,6 +1,6 @@
 const { ethers } = require("hardhat");
 
-  async function main() {
+  async function deployBLBIO() {
     // simple deploy
     const BLBIO = await ethers.getContractFactory("BLBIO");
     const ICO = await BLBIO.deploy();
@@ -8,4 +8,4 @@ const { ethers } = require("hardhat");
     console.log("BLBIO Contract Address:", ICO.address); 
   }
     
-  main();
+  deployBLBIO();
