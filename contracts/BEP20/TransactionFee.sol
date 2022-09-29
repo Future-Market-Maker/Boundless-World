@@ -31,7 +31,7 @@ abstract contract TransactionFee is ERC20, Administration {
      * @notice requirement:
      *  - Only the owner of the contract can call this function.
      *  - one of the feeAmount or feeFraction must be zero.
-     *  - fee fraction can be a maximum of 50,000 which equals 5% of the transactions
+     *  - fee fraction can be a maximum of 50,000 which equals 10% of the transactions
      * 
      * @dev emits a SetTransactionFee event
      */
@@ -45,8 +45,8 @@ abstract contract TransactionFee is ERC20, Administration {
             "TransactionFee: Cannot set feeAmount and feeFraction at the same time"
         );
         require(
-            _feeFraction <= 5 * 10 ** 4, 
-            "TransactionFee: Up to 5% transactionFee can be set"
+            _feeFraction <= 10 ** 5, 
+            "TransactionFee: Up to 10% transactionFee can be set"
         );
         feeAmount = _feeAmount;
         feeFraction = _feeFraction;

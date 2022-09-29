@@ -1,4 +1,5 @@
 const { ethers } = require("hardhat");
+const { verify } = require("./utils/verifier.js")
 
   async function deployBLBToken() {
     // simple deploy
@@ -6,11 +7,10 @@ const { ethers } = require("hardhat");
     const BLB = await BLBToken.deploy();
     await BLB.deployed();
     console.log("BLBToken Contract Address:", BLB.address);
+    
+    // await verify(BLB.address, )
+
     return BLB.address
   }   
   
-  module.exports = async ({ getNamedAccounts, deployments }) => {
-    
-  deployBLBToken()
-
   exports.deployBLBToken = deployBLBToken
