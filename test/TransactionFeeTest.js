@@ -1,7 +1,5 @@
 /* global describe it before ethers */
 
-// const { ethers } = require("hardhat")
-
 const { assert, expect } = require('chai')
 
 describe('TransactionFeeTest', async function () {
