@@ -15,7 +15,7 @@ describe('TransferControlTest', async function () {
         const accounts = await ethers.getSigners();
         [deployer, user1, user2] = accounts
         BLB = await hre.ethers.getContractFactory("BLBToken");
-        BLBAddr = await BLB.deploy(period);
+        BLBAddr = await BLB.deploy(period, deployer.address);
     }) 
 
     it('period fraction should be up to 100%', async () => {

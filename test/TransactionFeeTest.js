@@ -14,7 +14,7 @@ describe('TransactionFeeTest', async function () {
         const accounts = await ethers.getSigners();
         [deployer, user1, user2] = accounts
         BLB = await hre.ethers.getContractFactory("BLBToken");
-        BLBAddr = await BLB.deploy(0);
+        BLBAddr = await BLB.deploy(3, deployer.address);
     }) 
 
     it('only admin can set transaction fee', async () => {

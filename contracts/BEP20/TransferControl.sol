@@ -132,7 +132,7 @@ abstract contract TransferControl is ERC20Capped, Administration {
     function canSpend(address addr) public view returns(uint256 amount) {
         if (isRestricted(addr)){
             return restrictedAddresses.get(addr);
-        } else if(hasRole(MINTER_ROLE, _msgSender())) {
+        } else if(hasRole(MINTER_ROLE, addr)) {
             return cap() - totalSupply();
         } else {
             if(periodFraction == 10 ** 6){
