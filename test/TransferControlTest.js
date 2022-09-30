@@ -65,7 +65,7 @@ describe('TransferControlTest', async function () {
         await BLBAddr.mint(user1.address, 30)
 
         assert.equal(
-            await BLBAddr.balanceOf(user1.address),
+            await BLBAddr.canSpend(user1.address),
             30
         )
 
