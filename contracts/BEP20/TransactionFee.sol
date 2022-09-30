@@ -73,18 +73,22 @@ abstract contract TransactionFee is ERC20, Administration {
      * @notice the transaction fee is sent to the fee receiver.
      * @notice if the fee receiver is zero address, fee tokens are burned.
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount)
-        internal
-        virtual
-        override
-    {
-        address caller = _msgSender();
+    function _payTransactionFee(address caller, uint256 amount) internal {
         if(!hasRole(MINTER_ROLE, caller)) {
             if(feeFraction > 0 || feeAmount > 0) {
                 uint256 _transactionFee = transactionFee(amount);
                 _pureTransfer(caller, feeReceiver, _transactionFee);
             }
         }
+    }
+    
+    function _beforeTokenTransfer(address from, address to, uint256 amount)
+        internal
+        virtual
+        override
+    {
+        _payTransactionFee(_msgSender(), amount);
+
         super._beforeTokenTransfer(from, to, amount);
     }
 }
