@@ -73,16 +73,16 @@ describe('TransactionFeeTest', async function () {
     })
 
     it('no transaction fee for minter role', async () => {
-        let feeSetterRole = await BLBAddr.MINTER_ROLE()
+        let minterRole = await BLBAddr.MINTER_ROLE()
         assert.equal(
-            await BLBAddr.hasRole(feeSetterRole, user1.address),
+            await BLBAddr.hasRole(minterRole, user1.address),
             false
         )
         await BLBAddr.grantRole(
-            feeSetterRole, user1.address
+            minterRole, user1.address
         )
         assert.equal(
-            await BLBAddr.hasRole(feeSetterRole, user1.address),
+            await BLBAddr.hasRole(minterRole, user1.address),
             true
         )
         await BLBAddr.connect(user1).mint(user1.address, 100)

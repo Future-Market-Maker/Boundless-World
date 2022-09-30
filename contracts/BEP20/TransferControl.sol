@@ -69,7 +69,7 @@ abstract contract TransferControl is ERC20Capped, Administration {
         public 
         onlyRole(TRANSFER_LIMIT_SETTER) 
     {
-        require(fraction <= 10 ** 6, "maximum fraction is 10**6 (equal to 100%)");
+        require(fraction <= 10 ** 6, "TransferControl: maximum fraction is 10**6 (equal to 100%)");
         periodFraction = fraction;
 
         emit SetPeriodTransferFraction(fraction);
@@ -149,18 +149,16 @@ abstract contract TransferControl is ERC20Capped, Administration {
     function _spend(address addr, uint256 amount) internal {
         if(isRestricted(addr)) {
             uint256 spendableAmount = restrictedAddresses.get(addr);
-            require(amount <= spendableAmount, "amount exceeds spend limit");
+            require(amount <= spendableAmount, "TransferControl: amount exceeds spend limit");
             restrictedAddresses.set(addr, spendableAmount - amount);
-        } else {
-            if(periodFraction != 10 ** 6 && !hasRole(MINTER_ROLE, _msgSender())) {
-                uint256 periodAmount = balanceOf(addr) * periodFraction / 10 ** 6;
-                uint256 currentNonce = (block.timestamp - startTime) / periodTime;
-                if(checkpoints[addr].nonce == currentNonce) {
-                    amount += checkpoints[addr].spent;
-                }
-                require(amount <= periodAmount, "amount exceeds period spend limit");
-                checkpoints[addr] = Period(amount, currentNonce);
+        } else if (periodFraction != 10 ** 6 && !hasRole(MINTER_ROLE, _msgSender())) {
+            uint256 periodAmount = balanceOf(addr) * periodFraction / 10 ** 6;
+            uint256 currentNonce = (block.timestamp - startTime) / periodTime;
+            if(checkpoints[addr].nonce == currentNonce) {
+                amount += checkpoints[addr].spent;
             }
+            require(amount <= periodAmount, "TransferControl: amount exceeds period spend limit");
+            checkpoints[addr] = Period(amount, currentNonce);
         }
     }
 
@@ -169,7 +167,11 @@ abstract contract TransferControl is ERC20Capped, Administration {
         virtual
         override
     {
-        _spend(from, amount);
+        if(from == address(0)){
+            _spend(_msgSender(), amount);
+        } else {
+            _spend(from, amount);
+        }
 
         super._beforeTokenTransfer(from, to, amount);
     }
