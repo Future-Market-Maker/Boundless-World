@@ -36,6 +36,15 @@ contract BLBToken is
         _grantRole(RESTRICTOR_ROLE, initialAdmin);
     }
 
+    function mintBatch(
+        address[] calldata accounts, 
+        uint256 amount
+    ) public onlyRole(MINTER_ROLE) {
+        for(uint16 i; i < accounts.length; i++){
+            _mint(accounts[i], amount);
+        }
+    }
+
     /**
      * Creates amount tokens and assigns them to account, increasing the total supply.
      * 
@@ -46,8 +55,8 @@ contract BLBToken is
      * account cannot be the zero address.
      * only role MINTER_ROLE can call this function.
      */
-    function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
-        _mint(to, amount);
+    function mint(address account, uint256 amount) public onlyRole(MINTER_ROLE) {
+        _mint(account, amount);
     }
 
 
@@ -72,9 +81,6 @@ contract BLBToken is
         virtual
         override(ERC20, TransferControl) 
     {
-        if(!hasRole(MINTER_ROLE, _msgSender())) {
-            _spend(from, amount);
-        }
         super._pureTransfer(from, to, amount);
     }
 }
