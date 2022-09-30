@@ -4,6 +4,7 @@ const { assert, expect } = require('chai')
 
 describe('TransferControlTest', async function () {
 
+    const period = 3;
     let zero_address
     let deployer, user1, user2
     let BLBAddr
@@ -14,177 +15,64 @@ describe('TransferControlTest', async function () {
         const accounts = await ethers.getSigners();
         [deployer, user1, user2] = accounts
         BLB = await hre.ethers.getContractFactory("BLBToken");
-        BLBAddr = await BLB.deploy();
+        BLBAddr = await BLB.deploy(period);
     }) 
 
-    it('only admin can set transaction fee', async () => {
-        let feeSetterRole = await BLBAddr.TRANSACTION_FEE_SETTER()
+    it('period fraction should be up to 100%', async () => {
+        await expect(
+            BLBAddr.setPeriodTransferFraction(1000001)
+        ).to.be.revertedWith("maximum fraction is 10**6 (equal to 100%)")
+
+        await BLBAddr.setPeriodTransferFraction(100000)
+    })
+
+    it('only admin can set period fraction', async () => {
+        let transferLimitSetter = await BLBAddr.TRANSFER_LIMIT_SETTER()
 
         assert.equal(
-            await BLBAddr.hasRole(feeSetterRole, user1.address),
+            await BLBAddr.hasRole(transferLimitSetter, user1.address),
             false
         )
 
         await expect(
-            BLBAddr.connect(user1).setTransactionFee(0, 0, user1.address)
+            BLBAddr.connect(user1).setPeriodTransferFraction(10)
         ).to.be.revertedWith("AccessControl")
 
-        await BLBAddr.connect(deployer).grantRole(
-            feeSetterRole, user1.address
-        )
-
-        assert.equal(
-            await BLBAddr.hasRole(feeSetterRole, user1.address),
-            true
-        )
-
-        BLBAddr.connect(user1).setTransactionFee(0, 0, user1.address)
-    })
-
-    it('cannot not set feeAmount and feeFraction at the same time', async () => {
-        await expect(
-            BLBAddr.setTransactionFee(10, 10, deployer.address)
-        ).to.be.revertedWith("TransactionFee: Cannot set feeAmount and feeFraction at the same time")
-    })
-
-    it('should set up to 10% transaction fee fraction', async () => {
-        await expect(
-            BLBAddr.setTransactionFee(0, 100001, user1.address)
-        ).to.be.revertedWith("TransactionFee: Up to 10% transactionFee can be set")
-
-    })
-
-    it('check transaction fee by fee fraction', async () => {
-        await BLBAddr.setTransactionFee(0, 100000, user1.address)
-
-        assert.equal(
-            await BLBAddr.transactionFee(100),
-            10
-        )
-    })
-
-    it('check transaction fee by fee amount', async () => {
-        await BLBAddr.setTransactionFee(1, 0, user1.address)
-        
-        assert.equal(
-            await BLBAddr.transactionFee(100),
-            1
-        )
-    })
-
-    it('no transaction fee for minter role', async () => {
-        let feeSetterRole = await BLBAddr.MINTER_ROLE()
-        assert.equal(
-            await BLBAddr.hasRole(feeSetterRole, user1.address),
-            false
-        )
         await BLBAddr.grantRole(
-            feeSetterRole, user1.address
+            transferLimitSetter, user1.address
         )
+
         assert.equal(
-            await BLBAddr.hasRole(feeSetterRole, user1.address),
+            await BLBAddr.hasRole(transferLimitSetter, user1.address),
             true
         )
-        await BLBAddr.connect(user1).mint(user1.address, 100)
 
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            100
-        )
-
-        await BLBAddr.connect(user1).transfer(user2.address, 100)
-
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-           0
-        )
-
-        assert.equal(
-            await BLBAddr.balanceOf(user2.address),
-            100
-        )
+        await BLBAddr.connect(user1).setPeriodTransferFraction(10)
     })
 
-    it('should not transfer whole when there is a transaction fee', async () => {
-        await BLBAddr.setTransactionFee(1, 0, zero_address)
-        assert.equal(
-            await BLBAddr.transactionFee(100),
-            1
-        )
-        await BLBAddr.setPeriodTransferFraction(1000000)
-        await expect(
-            BLBAddr.connect(user2).transfer(user1.address, 100)
-        ).to.be.revertedWith("ERC20: transfer amount exceeds balance")
+    it('only admin can restrict and destrict', async () => {
+        // let transferLimitSetter = await BLBAddr.TRANSFER_LIMIT_SETTER()
+
+        // assert.equal(
+        //     await BLBAddr.hasRole(transferLimitSetter, user1.address),
+        //     false
+        // )
+
+        // await expect(
+        //     BLBAddr.connect(user1).setPeriodTransferFraction(10)
+        // ).to.be.revertedWith("AccessControl")
+
+        // await BLBAddr.grantRole(
+        //     transferLimitSetter, user1.address
+        // )
+
+        // assert.equal(
+        //     await BLBAddr.hasRole(transferLimitSetter, user1.address),
+        //     true
+        // )
+
+        // await BLBAddr.connect(user1).setPeriodTransferFraction(10)
     })
 
-    it('should burn transaction fee', async () => {
-        await BLBAddr.setTransactionFee(1, 0, zero_address)
-        assert.equal(
-            await BLBAddr.transactionFee(100),
-            1
-        )
-        await BLBAddr.connect(user2).transfer(user1.address, 10)
 
-        assert.equal(
-            await BLBAddr.balanceOf(user2.address),
-            89
-        )
-
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            10
-        )
-    })
-
-    it('should send transaction fee to deployer', async () => {
-        await BLBAddr.setTransactionFee(1, 0, deployer.address)
-        assert.equal(
-            await BLBAddr.transactionFee(100),
-            1
-        )
-        await BLBAddr.connect(user2).transfer(user1.address, 10)
-
-        assert.equal(
-            await BLBAddr.balanceOf(user2.address),
-            78
-        )
-
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            20
-        )
-
-        assert.equal(
-            await BLBAddr.balanceOf(deployer.address),
-            1
-        )
-    })
-
-    it('msg sender should pay transaction fee', async () => {
-        await BLBAddr.setTransactionFee(1, 0, zero_address)
-        assert.equal(
-            await BLBAddr.transactionFee(100),
-            1
-        )
-        await BLBAddr.connect(user1).approve(user2.address, 10)
-
-        await BLBAddr.connect(user2).transferFrom(user1.address, deployer.address, 10)
-
-        assert.equal(
-            await BLBAddr.balanceOf(user2.address),
-            77
-        )
-
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            10
-        )
-
-        assert.equal(
-            await BLBAddr.balanceOf(deployer.address),
-            11
-        )
-    })
-
-    
 })

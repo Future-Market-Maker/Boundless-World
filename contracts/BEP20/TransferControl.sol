@@ -32,9 +32,9 @@ abstract contract TransferControl is ERC20Capped, Administration {
     uint256 immutable startTime;
     uint256 immutable periodTime;
 
-    constructor() {
+    constructor(uint256 _periodTime) {
         startTime = block.timestamp;
-        periodTime = 30 days;
+        periodTime = _periodTime;
     }
 
     /**

@@ -20,7 +20,8 @@ contract BLBToken is
     TransferControl
 {
 
-    constructor() 
+    constructor(uint256 _periodTime) 
+        TransferControl(_periodTime)
         ERC20("Boundless World", "BLB") 
         ERC20Capped((3.69 * 10 ** 9) * 10 ** decimals())
         ERC20Permit("Boundless World") 
