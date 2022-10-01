@@ -28,7 +28,7 @@ abstract contract TransferControl is ERC20Capped, Administration {
 
     mapping(address => Period) checkpoints;
 
-    uint256 periodFraction;
+    uint256 public periodFraction;
     uint256 immutable startTime;
     uint256 immutable periodTime;
 
