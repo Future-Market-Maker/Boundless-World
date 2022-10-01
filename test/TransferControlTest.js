@@ -4,7 +4,7 @@ const { assert, expect } = require('chai')
 
 describe('TransferControlTest', async function () {
 
-    const period = 3;
+    const period = 10;
     let zero_address
     let deployer, user1, user2
     let BLBAddr
@@ -108,41 +108,50 @@ describe('TransferControlTest', async function () {
         )
     })
 
-    it('minter role can also be restricted', async () => {
+    it('regular user can spend certain maximum fraction every period', async () => {
+        await BLBAddr.setPeriodTransferFraction(500000)
+
         let minterRole = await BLBAddr.MINTER_ROLE()
-
-        await BLBAddr.grantRole(
-            minterRole, user1.address
-        )
-
-        await BLBAddr.connect(user1).mint(user2.address, 30)
-
         assert.equal(
-            await BLBAddr.canSpend(user1.address),
-            await BLBAddr.cap() - await BLBAddr.totalSupply()
+            await BLBAddr.hasRole(minterRole, user1.address),
+            false
         )
-
-        await BLBAddr.restrict(user1.address, 10)
-
         assert.equal(
-            await BLBAddr.canSpend(user1.address),
-            10
-        )
-
-        await BLBAddr.connect(user1).mint(user2.address, 10)
-
-        assert.equal(
-            await BLBAddr.canSpend(user1.address),
+            await BLBAddr.transactionFee(10),
             0
         )
 
+        assert.equal(
+            await BLBAddr.isRestricted(user1.address),
+            false
+        )
+        await BLBAddr.mint(user1.address, 10)
+
+        assert.equal(
+            await BLBAddr.balanceOf(user1.address),
+            10
+        )
+        assert.equal(
+            await BLBAddr.canSpend(user1.address),
+            5
+        )
+
         await expect(
-            BLBAddr.connect(user1).mint(user2.address, 10)
-        ).to.be.revertedWith("TransferControl: amount exceeds spend limit")
+            BLBAddr.connect(user1).transfer(user2.address, 10)
+        ).to.be.revertedWith("TransferControl: amount exceeds period spend limit")
 
-        await BLBAddr.district(user1.address)
+        await BLBAddr.connect(user1).transfer(user2.address, 1)
 
-        BLBAddr.connect(user1).mint(user2.address, 10)
+        assert.equal(
+            await BLBAddr.balanceOf(user1.address),
+            9
+        )
+
+        // assert.equal(
+        //     await BLBAddr.canSpend(user1.address),
+        //     4
+        // )
+        
     })
 
 })
