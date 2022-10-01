@@ -54,6 +54,10 @@ abstract contract TransactionFee is ERC20, Administration {
 
         emit SetTransactionFee(_feeAmount, _feeFraction, _feeReceiver);
     }
+    
+    function feeDetails() public view returns(uint256, uint256, address) {
+        return (feeAmount, feeFraction, feeReceiver);
+    }
 
     /**
      * @return fee transaction fee corresponding to the transferring amount.
