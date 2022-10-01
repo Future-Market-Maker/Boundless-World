@@ -185,4 +185,41 @@ describe('TransactionFeeTest', async function () {
             11
         )
     })
+
+    it('fees should be deducted from restricted addresses spendable', async () => {
+        await BLBAddr.setTransactionFee(1, 0, zero_address)
+        assert.equal(
+            await BLBAddr.transactionFee(100),
+            1
+        )
+        await BLBAddr.connect(user1).approve(user2.address, 10)
+        await BLBAddr.restrict(user2.address, 10)
+
+        assert.equal(
+            await BLBAddr.canSpend(user2.address),
+            10
+        )
+
+        await BLBAddr.connect(user2).transferFrom(user1.address, deployer.address, 10)
+
+        assert.equal(
+            await BLBAddr.canSpend(user2.address),
+            9
+        )
+
+        assert.equal(
+            await BLBAddr.balanceOf(user2.address),
+            76
+        )
+
+        assert.equal(
+            await BLBAddr.balanceOf(user1.address),
+            0
+        )
+
+        assert.equal(
+            await BLBAddr.balanceOf(deployer.address),
+            21
+        )
+    })
 })
