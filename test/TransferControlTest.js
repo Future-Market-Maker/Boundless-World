@@ -1,6 +1,7 @@
 /* global describe it before ethers */
 
 const { assert, expect } = require('chai')
+const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe('TransferControlTest', async function () {
 
@@ -140,18 +141,23 @@ describe('TransferControlTest', async function () {
             BLBAddr.connect(user1).transfer(user2.address, 10)
         ).to.be.revertedWith("TransferControl: amount exceeds period spend limit")
 
-        await BLBAddr.connect(user1).transfer(user2.address, 1)
+        await BLBAddr.connect(user1).transfer(user2.address, 5)
 
         assert.equal(
             await BLBAddr.balanceOf(user1.address),
-            9
+            5
         )
 
-        // assert.equal(
-        //     await BLBAddr.canSpend(user1.address),
-        //     4
-        // )
+        assert.equal(
+            await BLBAddr.canSpend(user1.address),
+            0
+        )
         
+        await expect(
+            BLBAddr.connect(user1).transfer(user2.address, 1)
+        ).to.be.revertedWith("TransferControl: amount exceeds period spend limit")
+
+        // await time.increaseTo(period);
     })
 
 })
