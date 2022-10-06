@@ -54,13 +54,18 @@ abstract contract TransactionFee is ERC20, Administration {
 
         emit SetTransactionFee(_feeAmount, _feeFraction, _feeReceiver);
     }
-    
+
+    /**
+     * @return feeAmount numerator of transaction fee which denominator is 1,000,000.
+     * @return feeFraction independent transaction fee for every token transfer.
+     * @return feeReceiver address of the fee receiver.
+     */
     function feeDetails() public view returns(uint256, uint256, address) {
         return (feeAmount, feeFraction, feeReceiver);
     }
 
     /**
-     * @return fee transaction fee corresponding to the transferring amount.
+     * @return fee corresponding to the transferring amount for every transaction.
      * @notice if there is a fee amount, the transaction fee is not proportional to the
      *  transfering amount.
      */
