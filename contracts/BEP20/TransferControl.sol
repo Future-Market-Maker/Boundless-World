@@ -30,6 +30,11 @@ abstract contract TransferControl is ERC20Capped, Administration {
 
     uint256 constant monthlyTime = 30 days;
     uint256 immutable startTime;
+
+   /**
+     * @return fraction the numerator of monthly transfer limit rate which denominator
+     * is 10**6.
+     */ 
     uint256 public monthlyLimit;
 
     constructor() {
