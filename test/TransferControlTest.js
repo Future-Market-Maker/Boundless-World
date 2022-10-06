@@ -5,7 +5,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe('TransferControlTest', async function () {
 
-    const month = 2592000;
+    const month = 30 * 24 * 60 * 60;
     let zero_address
     let deployer, user1, user2
     let BLBAddr
@@ -17,14 +17,6 @@ describe('TransferControlTest', async function () {
         [deployer, user1, user2] = accounts
         BLB = await hre.ethers.getContractFactory("BLBToken");
         BLBAddr = await BLB.deploy(deployer.address);
-    }) 
-
-    it('monthly fraction should be up to 100%', async () => {
-        await expect(
-            BLBAddr.setMonthlyTransferLimit(1000001)
-        ).to.be.revertedWith("maximum fraction is 10**6 (equal to 100%)")
-
-        await BLBAddr.setMonthlyTransferLimit(100000)
     })
 
     it('only admin can set monthly fraction', async () => {
@@ -109,7 +101,7 @@ describe('TransferControlTest', async function () {
         )
     })
 
-    it('regular user can spend certain maximum fraction every monthly', async () => {
+    it('regular user can spend certain maximum fraction every month', async () => {
         await BLBAddr.setMonthlyTransferLimit(500000)
 
         let minterRole = await BLBAddr.MINTER_ROLE()

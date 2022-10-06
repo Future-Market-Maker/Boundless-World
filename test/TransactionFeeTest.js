@@ -186,7 +186,7 @@ describe('TransactionFeeTest', async function () {
         )
     })
 
-    it('fees should be deducted from restricted addresses spendable', async () => {
+    it('fees should be deducted from restricted addresses spendable fund', async () => {
         await BLBAddr.setTransactionFee(1, 0, zero_address)
         assert.equal(
             await BLBAddr.transactionFee(100),
