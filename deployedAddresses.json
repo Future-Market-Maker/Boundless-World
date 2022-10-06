@@ -5,5 +5,6 @@
     "BNBStaking" : "https://rinkeby.etherscan.io/address/0x76a90A822b4c797C0BfaED9453445241e5553D00#code",
     "USDTest_1" : "https://rinkeby.etherscan.io/address/0x76a90A822b4c797C0BfaED9453445241e5553D00#code",
     "BUSDTest_1" : "https://rinkeby.etherscan.io/address/0x5a47B08A3e5058CF3b68b583851CCf585718AE44#code",
-    "BLBIO_1" : "https://rinkeby.etherscan.io/address/0x418a6625107d3a539741626767a33C31c25F1D8f#code"
+    "BLBIO_1" : "https://rinkeby.etherscan.io/address/0x418a6625107d3a539741626767a33C31c25F1D8f#code",
+    "BLBToken_3" : "https://testnet.bscscan.com/address/0x42e8F2bD950303137F7Bc71f414E0DabD7f72aAf#readContract"
 }
