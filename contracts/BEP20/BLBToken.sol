@@ -32,6 +32,16 @@ contract BLBToken is
         _grantRole(RESTRICTOR_ROLE, initialAdmin);
     }
 
+    /**
+     * Mint amount of token to every member in accounts.
+     * 
+     * Emits some transfer events with from set to the zero address to every account.
+     * 
+     * Requirements:
+     * 
+     * accounts cannot be the zero address.
+     * only role MINTER_ROLE can call this function.
+     */
     function mintBatch(
         address[] calldata accounts, 
         uint256 amount
