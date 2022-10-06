@@ -111,7 +111,7 @@ describe('TransactionFeeTest', async function () {
             await BLBAddr.transactionFee(100),
             1
         )
-        await BLBAddr.setPeriodTransferFraction(1000000)
+        await BLBAddr.setPeriodTransferLimit(1000000)
         await expect(
             BLBAddr.connect(user2).transfer(user1.address, 100)
         ).to.be.revertedWith("ERC20: transfer amount exceeds balance")

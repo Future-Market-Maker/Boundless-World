@@ -40,7 +40,7 @@ abstract contract TransferControl is ERC20Capped, Administration {
     /**
      * @dev emits when the admin sets a new value as the periodFraction.
      */
-    event SetPeriodTransferFraction(uint256 fraction);
+    event SetPeriodTransferLimit(uint256 fraction);
 
     /**
      * @dev emits when the admin restricts an address.
@@ -63,16 +63,16 @@ abstract contract TransferControl is ERC20Capped, Administration {
      *  - only owner of contract can call this function.
      *  - maximum fraction can be 10**6 (equal to 100%).
      * 
-     * @notice emits a SetPeriodTransferFraction event.
+     * @notice emits a SetPeriodTransferLimit event.
      */
-    function setPeriodTransferFraction(uint256 fraction) 
+    function setPeriodTransferLimit(uint256 fraction) 
         public 
-        onlyRole(TRANSFER_LIMIT_SETTER) 
+        onlyRole(TRANSFER_LIMIT_SETTER)
     {
         require(fraction <= 10 ** 6, "TransferControl: maximum fraction is 10**6 (equal to 100%)");
         periodFraction = fraction;
 
-        emit SetPeriodTransferFraction(fraction);
+        emit SetPeriodTransferLimit(fraction);
     }
 
     /**
@@ -155,11 +155,11 @@ abstract contract TransferControl is ERC20Capped, Administration {
             restrictedAddresses.set(addr, spendableAmount - amount);
         } else if (periodFraction < 10 ** 6 && !hasRole(MINTER_ROLE, _msgSender())) {
             uint256 currentNonce = (block.timestamp - startTime) / periodTime;
-            uint256 spentAmount = checkpoints[addr].spent;
-            uint256 spendingAmount = spentAmount + amount;
+            uint256 spentAmount;
             if(checkpoints[addr].nonce == currentNonce) {
                 spentAmount = checkpoints[addr].spent;
             }
+            uint256 spendingAmount = spentAmount + amount;
             uint256 periodAmount = (balanceOf(addr) + spentAmount) * periodFraction / 10 ** 6;
             require(spendingAmount <= periodAmount, "TransferControl: amount exceeds period spend limit");
             checkpoints[addr] = Period(spendingAmount, currentNonce);
