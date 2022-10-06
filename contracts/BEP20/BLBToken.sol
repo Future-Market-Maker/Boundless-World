@@ -33,6 +33,20 @@ contract BLBToken is
     }
 
     /**
+     * Creates amount tokens and assigns them to account, increasing the total supply.
+     * 
+     * Emits a transfer event with from set to the zero address.
+     * 
+     * Requirements:
+     * 
+     * account cannot be the zero address.
+     * only role MINTER_ROLE can call this function.
+     */
+    function mint(address account, uint256 amount) public onlyRole(MINTER_ROLE) {
+        _mint(account, amount);
+    }
+
+    /**
      * Mint amount of token to every member in accounts.
      * 
      * Emits some transfer events with from set to the zero address to every account.
@@ -49,20 +63,6 @@ contract BLBToken is
         for(uint16 i; i < accounts.length; i++){
             _mint(accounts[i], amount);
         }
-    }
-
-    /**
-     * Creates amount tokens and assigns them to account, increasing the total supply.
-     * 
-     * Emits a transfer event with from set to the zero address.
-     * 
-     * Requirements:
-     * 
-     * account cannot be the zero address.
-     * only role MINTER_ROLE can call this function.
-     */
-    function mint(address account, uint256 amount) public onlyRole(MINTER_ROLE) {
-        _mint(account, amount);
     }
 
 
