@@ -14,7 +14,7 @@ describe('TransactionFeeTest', async function () {
         const accounts = await ethers.getSigners();
         [deployer, user1, user2] = accounts
         BLB = await hre.ethers.getContractFactory("BLBToken");
-        BLBAddr = await BLB.deploy(3, deployer.address);
+        BLBAddr = await BLB.deploy(deployer.address);
     }) 
 
     it('only admin can set transaction fee', async () => {
@@ -111,7 +111,7 @@ describe('TransactionFeeTest', async function () {
             await BLBAddr.transactionFee(100),
             1
         )
-        await BLBAddr.setPeriodTransferLimit(1000000)
+        await BLBAddr.setMonthlyTransferLimit(1000000)
         await expect(
             BLBAddr.connect(user2).transfer(user1.address, 100)
         ).to.be.revertedWith("ERC20: transfer amount exceeds balance")

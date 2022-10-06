@@ -5,7 +5,7 @@ const { time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe('TransferControlTest', async function () {
 
-    const period = 60;
+    const month = 2592000;
     let zero_address
     let deployer, user1, user2
     let BLBAddr
@@ -16,18 +16,18 @@ describe('TransferControlTest', async function () {
         const accounts = await ethers.getSigners();
         [deployer, user1, user2] = accounts
         BLB = await hre.ethers.getContractFactory("BLBToken");
-        BLBAddr = await BLB.deploy(period, deployer.address);
+        BLBAddr = await BLB.deploy(deployer.address);
     }) 
 
-    it('period fraction should be up to 100%', async () => {
+    it('monthly fraction should be up to 100%', async () => {
         await expect(
-            BLBAddr.setPeriodTransferLimit(1000001)
+            BLBAddr.setMonthlyTransferLimit(1000001)
         ).to.be.revertedWith("maximum fraction is 10**6 (equal to 100%)")
 
-        await BLBAddr.setPeriodTransferLimit(100000)
+        await BLBAddr.setMonthlyTransferLimit(100000)
     })
 
-    it('only admin can set period fraction', async () => {
+    it('only admin can set monthly fraction', async () => {
         let transferLimitSetter = await BLBAddr.TRANSFER_LIMIT_SETTER()
 
         assert.equal(
@@ -36,7 +36,7 @@ describe('TransferControlTest', async function () {
         )
 
         await expect(
-            BLBAddr.connect(user1).setPeriodTransferLimit(10)
+            BLBAddr.connect(user1).setMonthlyTransferLimit(10)
         ).to.be.revertedWith("AccessControl")
 
         await BLBAddr.grantRole(
@@ -48,20 +48,20 @@ describe('TransferControlTest', async function () {
             true
         )
 
-        await BLBAddr.connect(user1).setPeriodTransferLimit(10)
+        await BLBAddr.connect(user1).setMonthlyTransferLimit(10)
     })
 
-    it('period fraction should be up to 100%', async () => {
+    it('monthly fraction should be up to 100%', async () => {
         await expect(
-            BLBAddr.setPeriodTransferLimit(1000001)
+            BLBAddr.setMonthlyTransferLimit(1000001)
         ).to.be.revertedWith("maximum fraction is 10**6 (equal to 100%)")
 
-        await BLBAddr.setPeriodTransferLimit(100000)
+        await BLBAddr.setMonthlyTransferLimit(100000)
     })
 
     it('restricted address cannot spend more than its limitation', async () => {
 
-        await BLBAddr.setPeriodTransferLimit(1000000)
+        await BLBAddr.setMonthlyTransferLimit(1000000)
 
         await BLBAddr.mint(user1.address, 30)
 
@@ -109,8 +109,8 @@ describe('TransferControlTest', async function () {
         )
     })
 
-    it('regular user can spend certain maximum fraction every period', async () => {
-        await BLBAddr.setPeriodTransferLimit(500000)
+    it('regular user can spend certain maximum fraction every monthly', async () => {
+        await BLBAddr.setMonthlyTransferLimit(500000)
 
         let minterRole = await BLBAddr.MINTER_ROLE()
         assert.equal(
@@ -139,7 +139,7 @@ describe('TransferControlTest', async function () {
 
         await expect(
             BLBAddr.connect(user1).transfer(user2.address, 10)
-        ).to.be.revertedWith("TransferControl: amount exceeds period spend limit")
+        ).to.be.revertedWith("TransferControl: amount exceeds monthly spend limit")
 
         await BLBAddr.connect(user1).transfer(user2.address, 5)
 
@@ -155,9 +155,9 @@ describe('TransferControlTest', async function () {
         
         await expect(
             BLBAddr.connect(user1).transfer(user2.address, 1)
-        ).to.be.revertedWith("TransferControl: amount exceeds period spend limit")
+        ).to.be.revertedWith("TransferControl: amount exceeds monthly spend limit")
 
-        await time.increase(period);
+        await time.increase(1 * month);
 
         assert.equal(
             await BLBAddr.canSpend(user1.address),

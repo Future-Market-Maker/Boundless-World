@@ -145,7 +145,7 @@
           "type": "uint256"
         }
       ],
-      "name": "SetPeriodTransferLimit",
+      "name": "SetMonthlyTransferLimit",
       "type": "event"
     },
     {
@@ -536,12 +536,12 @@
     },
     {
       "inputs": [],
-      "name": "name",
+      "name": "monthlyLimit",
       "outputs": [
         {
-          "internalType": "string",
+          "internalType": "uint256",
           "name": "",
-          "type": "string"
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -549,12 +549,12 @@
     },
     {
       "inputs": [],
-      "name": "periodFraction",
+      "name": "name",
       "outputs": [
         {
-          "internalType": "uint256",
+          "internalType": "string",
           "name": "",
-          "type": "uint256"
+          "type": "string"
         }
       ],
       "stateMutability": "view",
@@ -622,7 +622,7 @@
           "type": "uint256"
         }
       ],
-      "name": "setPeriodTransferLimit",
+      "name": "setMonthlyTransferLimit",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"

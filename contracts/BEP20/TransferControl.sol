@@ -9,11 +9,11 @@ import "./Administration.sol";
 /**
  * @title control BLB transfers.
  * @notice users may have access to transfer their whole BLB balance or only a 
- * certain fraction every period(it depends on periodFraction).
+ * certain fraction every month(it depends on monthlyLimit).
  * @notice some specific addresses may have restricted access to transfer.
  * @notice owner of the contract can restrict every desired address and also 
  * determine a spending limit for all users.
- * @notice if an address is restricted then the public periodFraction is diactivated
+ * @notice if an address is restricted then the public monthlyLimit is deactivated
  * for it
  */
 abstract contract TransferControl is ERC20Capped, Administration {
@@ -21,26 +21,25 @@ abstract contract TransferControl is ERC20Capped, Administration {
 
     EnumerableMap.AddressToUintMap restrictedAddresses;
     
-    struct Period {
+    struct Month {
         uint256 spent;
         uint256 nonce;
     }
 
-    mapping(address => Period) checkpoints;
+    mapping(address => Month) checkpoints;
 
-    uint256 public periodFraction;
+    uint256 constant monthlyTime = 30 days;
     uint256 immutable startTime;
-    uint256 immutable periodTime;
+    uint256 public monthlyLimit;
 
-    constructor(uint256 _periodTime) {
+    constructor() {
         startTime = block.timestamp;
-        periodTime = _periodTime;
     }
 
     /**
-     * @dev emits when the admin sets a new value as the periodFraction.
+     * @dev emits when the admin sets a new value as the monthlyLimit.
      */
-    event SetPeriodTransferLimit(uint256 fraction);
+    event SetMonthlyTransferLimit(uint256 fraction);
 
     /**
      * @dev emits when the admin restricts an address.
@@ -53,7 +52,7 @@ abstract contract TransferControl is ERC20Capped, Administration {
     event District(address addr);
 
     /**
-     * @notice set spend limit for period transfers.
+     * @notice set spend limit for monthly transfers.
      * @notice there is no transfer limit if fraction is 10**6.
      *
      * @param fraction the numerator of transfer limit rate which denominator
@@ -63,16 +62,16 @@ abstract contract TransferControl is ERC20Capped, Administration {
      *  - only owner of contract can call this function.
      *  - maximum fraction can be 10**6 (equal to 100%).
      * 
-     * @notice emits a SetPeriodTransferLimit event.
+     * @notice emits a SetMonthlyTransferLimit event.
      */
-    function setPeriodTransferLimit(uint256 fraction) 
+    function setMonthlyTransferLimit(uint256 fraction) 
         public 
         onlyRole(TRANSFER_LIMIT_SETTER)
     {
         require(fraction <= 10 ** 6, "TransferControl: maximum fraction is 10**6 (equal to 100%)");
-        periodFraction = fraction;
+        monthlyLimit = fraction;
 
-        emit SetPeriodTransferLimit(fraction);
+        emit SetMonthlyTransferLimit(fraction);
     }
 
     /**
@@ -122,7 +121,7 @@ abstract contract TransferControl is ERC20Capped, Administration {
      * 
      * @dev if the address restricted, the amount equals remaining spendable amount for the 
      * address. else if there is a spend limit active for the contract, the amount equals 
-     * the address's remaining period spendable amount. else the amount equals balance of the
+     * the address's remaining monthly spendable amount. else the amount equals balance of the
      * address.
      * 
      * @dev MINTER_ROLE can also be restricted so
@@ -135,15 +134,15 @@ abstract contract TransferControl is ERC20Capped, Administration {
         } else if(hasRole(MINTER_ROLE, addr)) {
             return cap() - totalSupply();
         } else {
-            if(periodFraction == 10 ** 6){
+            if(monthlyLimit == 10 ** 6){
                 return balanceOf(addr);
             } else {
                 uint256 spentAmount;
-                if(checkpoints[addr].nonce == (block.timestamp - startTime) / periodTime) {
+                if(checkpoints[addr].nonce == (block.timestamp - startTime) / monthlyTime) {
                     spentAmount = checkpoints[addr].spent;
                 }
-                uint256 periodAmount = (balanceOf(addr) + spentAmount) * periodFraction / 10 ** 6;
-                return periodAmount - spentAmount;
+                uint256 monthlyAmount = (balanceOf(addr) + spentAmount) * monthlyLimit / 10 ** 6;
+                return monthlyAmount - spentAmount;
             }
         }
     }
@@ -153,16 +152,16 @@ abstract contract TransferControl is ERC20Capped, Administration {
             uint256 spendableAmount = restrictedAddresses.get(addr);
             require(amount <= spendableAmount, "TransferControl: amount exceeds spend limit");
             restrictedAddresses.set(addr, spendableAmount - amount);
-        } else if (periodFraction < 10 ** 6 && !hasRole(MINTER_ROLE, _msgSender())) {
-            uint256 currentNonce = (block.timestamp - startTime) / periodTime;
+        } else if (monthlyLimit < 10 ** 6 && !hasRole(MINTER_ROLE, _msgSender())) {
+            uint256 currentNonce = (block.timestamp - startTime) / monthlyTime;
             uint256 spentAmount;
             if(checkpoints[addr].nonce == currentNonce) {
                 spentAmount = checkpoints[addr].spent;
             }
             uint256 spendingAmount = spentAmount + amount;
-            uint256 periodAmount = (balanceOf(addr) + spentAmount) * periodFraction / 10 ** 6;
-            require(spendingAmount <= periodAmount, "TransferControl: amount exceeds period spend limit");
-            checkpoints[addr] = Period(spendingAmount, currentNonce);
+            uint256 monthlyAmount = (balanceOf(addr) + spentAmount) * monthlyLimit / 10 ** 6;
+            require(spendingAmount <= monthlyAmount, "TransferControl: amount exceeds monthly spend limit");
+            checkpoints[addr] = Month(spendingAmount, currentNonce);
         }
     }
 
