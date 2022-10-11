@@ -3,8 +3,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 require('hardhat-contract-sizer');
 
-const { PRIVATE_KEY, SMARTCHAIN_API_KEY, ETHERSCAN_API_KEY } = require('./secret.json');
-
+const { PRIVATE_KEY, SMARTCHAIN_API_KEY, MUMBAI_API_KEY, POLYGONSCAN_API_KEY } = require('./secret.json');
 
 module.exports = {
   
@@ -28,8 +27,8 @@ module.exports = {
       chainId: 97,
       accounts: [`0x${PRIVATE_KEY}`]
     },
-    rinkeby: {
-      url: `https://rinkeby.infura.io/v3/`,
+    polygonMumbai: {
+      url: `https://polygon-mumbai.g.alchemy.com/v2/${MUMBAI_API_KEY}`,
       accounts: [`0x${PRIVATE_KEY}`],
     },
   },
@@ -38,7 +37,7 @@ module.exports = {
     apiKey: {
       bsc: `${SMARTCHAIN_API_KEY}`,
       bscTestnet: `${SMARTCHAIN_API_KEY}`,
-      rinkeby: `${ETHERSCAN_API_KEY}`,
+      polygonMumbai: `${POLYGONSCAN_API_KEY}`,  
     }
   },
 
