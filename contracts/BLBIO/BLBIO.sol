@@ -17,9 +17,11 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface.sol";
  */
 contract BLBIO is Ownable {
 
+    //price feed aggregator
+    AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
+
     IERC20 public BLB;
     IERC20 public BUSD;
-    IERC20 public USDT;
 
     /**
      * @return price of the token in USD.
@@ -29,18 +31,10 @@ contract BLBIO is Ownable {
     uint256 public priceInUSD;
 
 
-    //aggregator on rinkeby (multiplied by 10^18)
-    AggregatorInterface constant AGGREGATOR_DAI_ETH = AggregatorInterface(0x74825DbC8BF76CC4e9494d0ecB210f676Efa001D);
-
     /**
      * @dev emits when a user buys BLB, paying in BNB.
      */
     event BuyInBNB(uint256 indexed amountBLB, uint256 indexed amountBNB);
-
-    /**
-     * @dev emits when a user buys BLB, paying in USDT.
-     */
-    event BuyInUSDT(uint256 indexed amountBLB, uint256 indexed amountUSDT);
 
     /**
      * @dev emits when a user buys BLB, paying in BUSD.
@@ -60,11 +54,16 @@ contract BLBIO is Ownable {
     event Withdraw(address indexed tokenAddr, uint256 indexed amount);
 
 
-    constructor() {
-        BLB = IERC20(0x0477de13Ed9F0d1a70Bd3e77d0D7B811DC8aF901); //BLB test on rinkeby
-        BUSD = IERC20(0x5a47B08A3e5058CF3b68b583851CCf585718AE44);//simple ERC20 on rinkeby
-        USDT = IERC20(0x76a90A822b4c797C0BfaED9453445241e5553D00);//simple ERC20 on rinkeby
-        setPriceInUSD(10 ** 18); // equals to 1 USD
+    constructor(
+        address BLB_Addr,
+        address BUSD_Addr,
+        address AGGREGATOR_BUSD_BNB_Addr
+    ) {
+        BLB = IERC20(BLB_Addr); 
+        BUSD = IERC20(BUSD_Addr);
+        AGGREGATOR_BUSD_BNB = AggregatorInterface(AGGREGATOR_BUSD_BNB_Addr);
+        
+        setPriceInUSD(10 ** 18); //equals 1 USD
     }
 
 
@@ -74,7 +73,7 @@ contract BLBIO is Ownable {
      * @notice multiplied by 10^18.
      */
     function priceInBNB() public view returns(uint256) {
-        return uint256(AGGREGATOR_DAI_ETH.latestAnswer())
+        return uint256(AGGREGATOR_BUSD_BNB.latestAnswer())
             * priceInUSD
             / 10 ** 18;
     }
@@ -117,26 +116,6 @@ contract BLBIO is Ownable {
         BLB.transfer(msg.sender, amount);       
         emit BuyInBUSD(amount, payableBUSD);
     }
-
-    /**
-     * @dev buy BLB Token paying in BUSD.
-     *
-     * @notice multiplied by 10^18.
-     *
-     * @notice requirement:
-     *   - there must be sufficient BLB tokens in ICO.
-     *   - Buyer must approve the ICO to spend required USDT.
-     *
-     * @notice emits a BuyInUSDT event
-     */
-    function buyInUSDT(uint256 amount) public {
-        require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
-        uint256 payableUSDT = priceInUSD * amount / 10 ** 18;
-        USDT.transferFrom(msg.sender, address(this), payableUSDT);        
-        BLB.transfer(msg.sender, amount);       
-        emit BuyInUSDT(amount, payableUSDT);
-    }
-
 
     /**
      * @dev set ticket price in USD;

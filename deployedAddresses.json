@@ -6,6 +6,10 @@
     "USDTest_1" : "https://rinkeby.etherscan.io/address/0x76a90A822b4c797C0BfaED9453445241e5553D00#code",
     "BUSDTest_1" : "https://rinkeby.etherscan.io/address/0x5a47B08A3e5058CF3b68b583851CCf585718AE44#code",
     "BLBIO_1" : "https://rinkeby.etherscan.io/address/0x418a6625107d3a539741626767a33C31c25F1D8f#code",
-    "BLBToken_3" : "https://testnet.bscscan.com/address/0x134341a04B11B1FD697Fc57Eab7D96bDbcdEa414",
-    "BLBToken_mainnet" : "https://bscscan.com/address/0x598cC4306b383c09521f079404bEd460831BDDCf#code"
+
+    "BLBToken_bsc_testnet" : "https://testnet.bscscan.com/address/0x134341a04B11B1FD697Fc57Eab7D96bDbcdEa414",
+    "BLBToken_bsc_mainnet" : "https://bscscan.com/address/0x598cC4306b383c09521f079404bEd460831BDDCf#code",
+
+    "BUSDTest_bsc_testnet" : "https://testnet.bscscan.com/address/0xCd57b180aeA8B61C7b273785748988A3A8eAb9c2#code",
+    "BLBIO_bsc_testnet" : "https://testnet.bscscan.com/address/0x2b74fCeFa7B9982C034fB237755F254645260f47#code"
 }
