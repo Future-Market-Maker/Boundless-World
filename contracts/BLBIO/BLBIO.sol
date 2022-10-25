@@ -54,14 +54,10 @@ contract BLBIO is Ownable {
     event Withdraw(address indexed tokenAddr, uint256 indexed amount);
 
 
-    constructor(
-        address BLB_Addr,
-        address BUSD_Addr,
-        address AGGREGATOR_BUSD_BNB_Addr
-    ) {
-        BLB = IERC20(BLB_Addr); 
-        BUSD = IERC20(BUSD_Addr);
-        AGGREGATOR_BUSD_BNB = AggregatorInterface(AGGREGATOR_BUSD_BNB_Addr);
+    constructor() {
+        BLB = IERC20(0x3034e7400F7DE5559475a6f0398d26991f965ca3); 
+        BUSD = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
+        AGGREGATOR_BUSD_BNB = AggregatorInterface(0x87Ea38c9F24264Ec1Fff41B04ec94a97Caf99941);
         
         setPriceInUSD(10 ** 18); //equals 1 USD
     }
