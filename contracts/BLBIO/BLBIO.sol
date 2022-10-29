@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface.sol";
+import "./BLBIOAdministration.sol";
 
 
 /**
@@ -15,7 +14,7 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface.sol";
  * @dev since solidity does not support floating variables, all prices are
  *   multiplied by 10^18 to embrace decimals.
  */
-contract BLBIO is Ownable {
+contract BLBIO is BLBIOAdministration {
 
     //price feed aggregator
     AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
@@ -23,27 +22,20 @@ contract BLBIO is Ownable {
     IERC20 public BLB;
     IERC20 public BUSD;
 
-    /**
-     * @return amount of the token in which the price decreases from retail to bulk.
-     *
-     * @notice multiplied by 10^18.
-     */
-    uint256 public retailLimit;
 
-    /**
-     * @dev price of the token in USD in bulk purchase.
-     *
-     * @notice multiplied by 10^18.
-     */
-    uint256 privatePriceInUSD;
-
-    /**
-     * @dev price of the token in USD in retail purchase.
-     *
-     * @notice multiplied by 10^18.
-     */
-    uint256 publicPriceInUSD;
-
+    constructor() {
+        BLB = IERC20(0x3034e7400F7DE5559475a6f0398d26991f965ca3); 
+        BUSD = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
+        AGGREGATOR_BUSD_BNB = AggregatorInterface(0x87Ea38c9F24264Ec1Fff41B04ec94a97Caf99941);
+        
+        setPriceInUSD(
+            0.30 * 10 ** 18, //equals 0.3 USD
+            0.28 * 10 ** 18  //equals 0.28 USD
+        ); 
+        setRetailLimit(
+            500 * 10 ** 18 //equals 500 blb
+        ); 
+    }
 
     /**
      * @dev emits when a user buys BLB, paying in BNB.
@@ -55,42 +47,29 @@ contract BLBIO is Ownable {
      */
     event BuyInBUSD(uint256 indexed amountBLB, uint256 indexed amountBUSD);
 
-    /**
-     * @dev emits when the owner sets a new price for the BLB token (in USD).
-     */
-    event SetPriceInUSD(uint256 indexed newPrice);
 
     /**
-     * @dev emits when the owner sets a new retail limit.
+     * @return price of the token in USD.
+     *
+     * @notice the private and public price is calculated automatically.
+     * 
+     * @notice multiplied by 10^18.
      */
-    event SetRetailLimit(uint256 indexed _retailLimit);
-
-    /**
-     * @dev emits when the owner withdraws any amount of BNB or ERC20 token.
-     *  
-     * @notice if the withdrawing token is BNB, tokenAddr equals address zero.
-     */
-    event Withdraw(address indexed tokenAddr, uint256 indexed amount);
-
-
-    constructor() {
-        BLB = IERC20(0x3034e7400F7DE5559475a6f0398d26991f965ca3); 
-        BUSD = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
-        AGGREGATOR_BUSD_BNB = AggregatorInterface(0x87Ea38c9F24264Ec1Fff41B04ec94a97Caf99941);
-        
-        setPriceInUSD(10 ** 18); //equals 1 USD
+    function priceInUSD(uint256 amount) public view returns(uint256) {
+        return amount > retailLimit ? privatePriceInUSD : publicPriceInUSD
+            * amount / 10 ** 18;
     }
-
 
     /**
      * @return price of the token in BNB corresponding to the USD price.
      *
+     * @notice the private and public price is calculated automatically.
+     * 
      * @notice multiplied by 10^18.
      */
-    function priceInBNB() public view returns(uint256) {
+    function priceInBNB(uint256 amount) public view returns(uint256) {
         return uint256(AGGREGATOR_BUSD_BNB.latestAnswer())
-            * priceInUSD
-            / 10 ** 18;
+            * priceInUSD(amount) / 10 ** 18;
     }
 
 
@@ -107,7 +86,7 @@ contract BLBIO is Ownable {
      * @notice emits a BuyInBNB event
      */
     function buyInBNB(uint256 amount) public payable {
-        require(msg.value >= amount * priceInBNB() * 98 / 10**20, "insufficient fee");
+        require(msg.value >= priceInBNB(amount) * 98 / 10**20, "insufficient fee");
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
         BLB.transfer(msg.sender, amount);
         emit BuyInBNB(amount, msg.value);
@@ -126,66 +105,9 @@ contract BLBIO is Ownable {
      */
     function buyInBUSD(uint256 amount) public {
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
-        uint256 payableBUSD = priceInUSD * amount / 10 ** 18;
+        uint256 payableBUSD = priceInUSD(amount);
         BUSD.transferFrom(msg.sender, address(this), payableBUSD); 
         BLB.transfer(msg.sender, amount);       
         emit BuyInBUSD(amount, payableBUSD);
-    }
-
-    /**
-     * @dev set ticket price in USD;
-     *
-     * @notice multiplied by 10^18.
-     *
-     * @notice requirement:
-     *   - only owner of the contract can call this function.
-     *
-     * @notice emits a SetPriceInUSD event
-     */
-    function setPriceInUSD(uint256 _priceInUSD) public onlyOwner {
-        priceInUSD = _priceInUSD;
-        emit SetPriceInUSD(_priceInUSD);
-    }
-
-    /**
-     * @dev set retail limit;
-     *
-     * @notice multiplied by 10^18.
-     *
-     * @notice requirement:
-     *   - only owner of the contract can call this function.
-     *
-     * @notice emits a SetPriceInUSD event
-     */
-    function setRetailLimit(uint256 _retailLimit) public onlyOwner {
-        retailLimit = _retailLimit;
-        emit SetRetailLimit(_retailLimit);
-    }
-
-    /**
-     * @dev withdraw ERC20 tokens from the contract.
-     *
-     * @notice requirement:
-     *   - only owner of the contract can call this function.
-     *
-     * @notice emits a Withdraw event
-     */
-    function withdrawERC20(address tokenAddr, uint256 amount) public onlyOwner {
-        IERC20(tokenAddr).transfer(msg.sender, amount);
-        emit Withdraw(tokenAddr, amount);
-    }
-
-
-    /**
-     * @dev withdraw BNB from the contract.
-     *
-     * @notice requirement:
-     *   - only owner of the contract can call this function.
-     *
-     * @notice emits a Withdraw event(address zero as the BNB token)
-     */
-    function withdraw(uint256 amount) public onlyOwner {
-        payable(msg.sender).transfer(amount);
-        emit Withdraw(address(0), amount);
     }
 }
