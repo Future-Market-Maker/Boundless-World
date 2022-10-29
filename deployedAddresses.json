@@ -12,5 +12,7 @@
 
     "BUSDTest_bsc_testnet" : "https://testnet.bscscan.com/address/0xCd57b180aeA8B61C7b273785748988A3A8eAb9c2#code",
     "BLBIO_bsc_testnet" : "https://testnet.bscscan.com/address/0x2b74fCeFa7B9982C034fB237755F254645260f47#code",
-    "BLBIO_bsc_mainnet" : "https://bscscan.com/address/0x1FC01B2C5b9b72F5D5FCa5346221255AecB9A35e#code"
+    "BLBIO_bsc_mainnet" : "https://bscscan.com/address/0x1FC01B2C5b9b72F5D5FCa5346221255AecB9A35e#code",
+
+    "BLBIO2_bsc_testnet" : "https://testnet.bscscan.com/address/0x16A2Bb54b000137c467d8dF4Db6c264d8D38EA1e#code"
 }
