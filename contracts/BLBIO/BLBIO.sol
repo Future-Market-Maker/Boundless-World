@@ -24,11 +24,25 @@ contract BLBIO is Ownable {
     IERC20 public BUSD;
 
     /**
-     * @return price of the token in USD.
+     * @return amount of the token in which the price decreases from retail to bulk.
      *
      * @notice multiplied by 10^18.
      */
-    uint256 public priceInUSD;
+    uint256 public retailLimit;
+
+    /**
+     * @dev price of the token in USD in bulk purchase.
+     *
+     * @notice multiplied by 10^18.
+     */
+    uint256 privatePriceInUSD;
+
+    /**
+     * @dev price of the token in USD in retail purchase.
+     *
+     * @notice multiplied by 10^18.
+     */
+    uint256 publicPriceInUSD;
 
 
     /**
@@ -45,6 +59,11 @@ contract BLBIO is Ownable {
      * @dev emits when the owner sets a new price for the BLB token (in USD).
      */
     event SetPriceInUSD(uint256 indexed newPrice);
+
+    /**
+     * @dev emits when the owner sets a new retail limit.
+     */
+    event SetRetailLimit(uint256 indexed _retailLimit);
 
     /**
      * @dev emits when the owner withdraws any amount of BNB or ERC20 token.
@@ -126,6 +145,21 @@ contract BLBIO is Ownable {
     function setPriceInUSD(uint256 _priceInUSD) public onlyOwner {
         priceInUSD = _priceInUSD;
         emit SetPriceInUSD(_priceInUSD);
+    }
+
+    /**
+     * @dev set retail limit;
+     *
+     * @notice multiplied by 10^18.
+     *
+     * @notice requirement:
+     *   - only owner of the contract can call this function.
+     *
+     * @notice emits a SetPriceInUSD event
+     */
+    function setRetailLimit(uint256 _retailLimit) public onlyOwner {
+        retailLimit = _retailLimit;
+        emit SetRetailLimit(_retailLimit);
     }
 
     /**
