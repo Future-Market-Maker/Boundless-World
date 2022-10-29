@@ -8,9 +8,11 @@ import "./BLBIOAdministration.sol";
 /**
  * @title BLB Initial Offering
  *
- * @dev BLB Token is offered in BNB, BUSD and USDT.
+ * @dev BLB Token is offered in BNB and BUSD(USDT).
  * @dev the prices are set in USD and calculated to corresponding BNB in 
  *   every buy transaction via chainlink price feed aggregator.
+ * @dev there two sale plan; public sale price for small amounts and private sale
+ *  price for large amounts of blb.
  * @dev since solidity does not support floating variables, all prices are
  *   multiplied by 10^18 to embrace decimals.
  */
@@ -51,7 +53,7 @@ contract BLBIO is BLBIOAdministration {
     /**
      * @return price of the token in USD.
      *
-     * @notice the private and public price is calculated automatically.
+     * @notice the private and public price are calculated automatically.
      * 
      * @notice multiplied by 10^18.
      */
@@ -63,7 +65,7 @@ contract BLBIO is BLBIOAdministration {
     /**
      * @return price of the token in BNB corresponding to the USD price.
      *
-     * @notice the private and public price is calculated automatically.
+     * @notice the private and public price are calculated automatically.
      * 
      * @notice multiplied by 10^18.
      */
@@ -86,7 +88,7 @@ contract BLBIO is BLBIOAdministration {
      * @notice emits a BuyInBNB event
      */
     function buyInBNB(uint256 amount) public payable {
-        require(msg.value >= priceInBNB(amount) * 98 / 10**20, "insufficient fee");
+        require(msg.value >= priceInBNB(amount) * 98/100, "insufficient fee");
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
         BLB.transfer(msg.sender, amount);
         emit BuyInBNB(amount, msg.value);
