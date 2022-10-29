@@ -21,7 +21,14 @@ contract BLBIO is BLBIOAdministration {
     //price feed aggregator
     AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
 
+    /**
+     * @return blb address of the token contract.
+     */
     IERC20 public BLB;
+
+    /**
+     * @return BUSD address of the token contract.
+     */
     IERC20 public BUSD;
 
 
