@@ -9,5 +9,6 @@ abstract contract Administration is AccessControlEnumerable {
     bytes32 public constant RESTRICTOR_ROLE = keccak256("RESTRICTOR_ROLE");
     bytes32 public constant TRANSFER_LIMIT_SETTER = keccak256("TRANSFER_LIMIT_SETTER");
     bytes32 public constant TRANSACTION_FEE_SETTER = keccak256("TRANSACTION_FEE_SETTER");
+    bytes32 public constant FEE_FREE_ROLE = keccak256("FEE_FREE_ROLE");
 
 }

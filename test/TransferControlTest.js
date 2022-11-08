@@ -201,7 +201,7 @@ describe('TransferControlTest', async function () {
         )
     })
 
-    it('router router should not pay transaction fee if restricted', async () => {
+    it('router should not pay transaction fee if restricted', async () => {
 
         assert.equal(
             await BLBAddr.canSpend(router.address),

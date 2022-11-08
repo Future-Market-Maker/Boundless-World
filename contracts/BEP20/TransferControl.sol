@@ -175,7 +175,11 @@ abstract contract TransferControl is ERC20Capped, Administration {
         virtual
         override
     {
-        _spend(_msgSender(), amount);
+        if(from == address(0)){
+            _spend(_msgSender(), amount);
+        } else {
+            _spend(from, amount);
+        }
 
         super._beforeTokenTransfer(from, to, amount);
     }
