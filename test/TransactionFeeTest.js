@@ -72,7 +72,9 @@ describe('TransactionFeeTest', async function () {
         )
     })
 
-    it('no transaction fee for minter role', async () => {
+    it('no transaction fee for minter role to mint but transfer', async () => {
+        await BLBAddr.setTransactionFee(1, 0, zero_address)
+
         let minterRole = await BLBAddr.MINTER_ROLE()
         assert.equal(
             await BLBAddr.balanceOf(user1.address),
@@ -83,11 +85,11 @@ describe('TransactionFeeTest', async function () {
             minterRole, user1.address
         )
 
-        await BLBAddr.connect(user1).mint(user1.address, 100)
+        await BLBAddr.connect(user1).mint(user1.address, 101)
 
         assert.equal(
             await BLBAddr.balanceOf(user1.address),
-            100
+            101
         )
 
         await BLBAddr.connect(user1).transfer(user2.address, 100)
@@ -193,7 +195,6 @@ describe('TransactionFeeTest', async function () {
         )
     })
 
-    it()
 
     it('fees should not be deducted from restricted addresses spendable fund', async () => {
         await BLBAddr.setTransactionFee(1, 0, zero_address)
