@@ -157,7 +157,7 @@ abstract contract TransferControl is ERC20Capped, Administration {
             uint256 spendableAmount = restrictedAddresses.get(addr);
             require(amount <= spendableAmount, "TransferControl: amount exceeds spend limit");
             restrictedAddresses.set(addr, spendableAmount - amount);
-        } else if (monthlyLimit < 10 ** 6 && !hasRole(MINTER_ROLE, _msgSender())) {
+        } else if (monthlyLimit < 10 ** 6 && !hasRole(MINTER_ROLE, addr)) {
             uint256 currentNonce = (block.timestamp - startTime) / monthlyTime;
             uint256 spentAmount;
             if(checkpoints[addr].nonce == currentNonce) {
@@ -175,22 +175,8 @@ abstract contract TransferControl is ERC20Capped, Administration {
         virtual
         override
     {
-        if(from == address(0)){
-            _spend(_msgSender(), amount);
-        } else {
-            _spend(from, amount);
-        }
+        _spend(_msgSender(), amount);
 
         super._beforeTokenTransfer(from, to, amount);
-    }
-
-    function _pureTransfer(address from, address to, uint256 amount) 
-        internal 
-        virtual
-        override 
-    {
-        _spend(from, amount);
-        
-        super._pureTransfer(from, to, amount);
     }
 }

@@ -77,16 +77,16 @@ abstract contract TransactionFee is ERC20, Administration {
     }
 
     /**
-     * @notice deducts the transaction fee from the caller.
-     * @notice it will be not deducted if the caller has the minter role.
+     * @notice deducts the transaction fee from the addr.
+     * @notice it will be not deducted if the addr has the minter role.
      * @notice the transaction fee is sent to the fee receiver.
      * @notice if the fee receiver is zero address, fee tokens are burned.
      */
-    function _payTransactionFee(address caller, uint256 amount) internal {
-        if(!hasRole(MINTER_ROLE, caller)) {
+    function _payTransactionFee(address addr, uint256 amount) internal {
+        if(!hasRole(MINTER_ROLE, addr)) {
             if(feeFraction > 0 || feeAmount > 0) {
                 uint256 _transactionFee = transactionFee(amount);
-                _pureTransfer(caller, feeReceiver, _transactionFee);
+                _pureTransfer(addr, feeReceiver, _transactionFee);
             }
         }
     }
@@ -96,7 +96,7 @@ abstract contract TransactionFee is ERC20, Administration {
         virtual
         override
     {
-        _payTransactionFee(_msgSender(), amount);
+        _payTransactionFee(from, amount);
 
         super._beforeTokenTransfer(from, to, amount);
     }

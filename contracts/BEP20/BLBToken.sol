@@ -81,12 +81,4 @@ contract BLBToken is
     {
         super._beforeTokenTransfer(from, to, amount);
     }
-
-    function _pureTransfer(address from, address to, uint256 amount) 
-        internal 
-        virtual
-        override(ERC20, TransferControl) 
-    {
-        super._pureTransfer(from, to, amount);
-    }
 }

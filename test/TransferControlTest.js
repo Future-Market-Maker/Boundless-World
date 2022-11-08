@@ -7,14 +7,14 @@ describe('TransferControlTest', async function () {
 
     const month = 30 * 24 * 60 * 60;
     let zero_address
-    let deployer, user1, user2
+    let deployer, user1, user2, router
     let BLBAddr
     let BLB
 
     before(async function () {
         zero_address = "0x0000000000000000000000000000000000000000"
         const accounts = await ethers.getSigners();
-        [deployer, user1, user2] = accounts
+        [deployer, user1, user2, router] = accounts
         BLB = await hre.ethers.getContractFactory("BLBToken");
         BLBAddr = await BLB.deploy(deployer.address);
     })
@@ -178,5 +178,46 @@ describe('TransferControlTest', async function () {
             14
         )
     })
+
+    it('router can take blb if restricted', async () => {
+
+        assert.equal(
+            await BLBAddr.canSpend(router.address),
+            0
+        )
+
+        await BLBAddr.mint(deployer.address, 10)
+
+        await BLBAddr.restrict(router.address, 20)
+
+        await BLBAddr.approve(router.address, 10)
+
+        await BLBAddr.connect(router).transferFrom(deployer.address, router.address, 10)
+
+        await BLBAddr.connect(router).burn(10)
+        assert.equal(
+            await BLBAddr.balanceOf(router.address),
+            0
+        )
+    })
+
+    it('router router should not pay transaction fee if restricted', async () => {
+
+        assert.equal(
+            await BLBAddr.canSpend(router.address),
+            0
+        )
+        await BLBAddr.setTransactionFee(1, 0, zero_address)
+
+        await BLBAddr.mint(deployer.address, 11)
+
+        await BLBAddr.restrict(router.address, 20)
+
+        await BLBAddr.approve(router.address, 10)
+
+        await BLBAddr.connect(router).transferFrom(deployer.address, router.address, 10)
+    })
+
+
 
 })
