@@ -16,10 +16,14 @@ contract BLBIO is BLBIOAdministration {
     }
 
 
-    constructor() {
-        BLB = IERC20(0x134341a04B11B1FD697Fc57Eab7D96bDbcdEa414); 
-        BUSD = IERC20(0xCd57b180aeA8B61C7b273785748988A3A8eAb9c2);
-        AGGREGATOR_BUSD_BNB = AggregatorInterface(0x0630521aC362bc7A19a4eE44b57cE72Ea34AD01c);
+    constructor(
+        address _BLBAddr,
+        address _BUSDAddr,
+        address _AGGREGATORAddr
+    ) {
+        BLB = IERC20(_BLBAddr); 
+        BUSD = IERC20(_BUSDAddr);
+        AGGREGATOR_BUSD_BNB = AggregatorInterface(_AGGREGATORAddr);
 
         setPriceInUSD(
             0.30 * 10 ** 18, //equals 0.3 USD

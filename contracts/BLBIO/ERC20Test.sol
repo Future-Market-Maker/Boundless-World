@@ -6,7 +6,11 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ERC20Test is ERC20, ERC20Burnable, Ownable {
-    constructor() ERC20("USDTTest", "USDT") {
+    
+    constructor(
+        string memory _name, 
+        string memory _symbol
+    ) ERC20(_name, _symbol) {
         _mint(msg.sender, 100 * 10 ** decimals());
     }
 
