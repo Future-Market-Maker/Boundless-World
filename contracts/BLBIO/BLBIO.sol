@@ -18,17 +18,9 @@ import "./BLBIOAdministration.sol";
  */
 contract BLBIO is BLBIOAdministration {
 
-    //price feed aggregator
     AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
 
-    /**
-     * @return blb address of the token contract.
-     */
     IERC20 public BLB;
-
-    /**
-     * @return BUSD address of the token contract.
-     */
     IERC20 public BUSD;
 
 
@@ -52,54 +44,22 @@ contract BLBIO is BLBIOAdministration {
         ); 
     }
 
-    /**
-     * @dev emits when a user buys BLB, paying in BNB.
-     */
     event BuyInBNB(uint256 indexed amountBLB, uint256 indexed amountBNB);
-
-    /**
-     * @dev emits when a user buys BLB, paying in BUSD.
-     */
     event BuyInBUSD(uint256 indexed amountBLB, uint256 indexed amountBUSD);
 
 
-    /**
-     * @return price of the token in USD.
-     *
-     * @notice the private and public price are calculated automatically.
-     * 
-     * @notice multiplied by 10^18.
-     */
     function priceInUSD(uint256 amount) public view returns(uint256) {
         return amount > retailLimit ? privatePriceInUSD : publicPriceInUSD
             * amount / 10 ** 18;
     }
 
-    /**
-     * @return price of the token in BNB corresponding to the USD price.
-     *
-     * @notice the private and public price are calculated automatically.
-     * 
-     * @notice multiplied by 10^18.
-     */
+
     function priceInBNB(uint256 amount) public view returns(uint256) {
         return uint256(AGGREGATOR_BUSD_BNB.latestAnswer())
             * priceInUSD(amount) / 10 ** 18;
     }
 
 
-    /**
-     * @dev buy BLB Token paying in BNB.
-     *
-     * @notice multiplied by 10^18.
-     * @notice maximum tolerance 2%.
-     *
-     * @notice requirement:
-     *   - there must be sufficient BLB token in ICO.
-     *   - required amount must be paid in BNB.
-     *
-     * @notice emits a BuyInBNB event
-     */
     function buyInBNB(uint256 amount) public payable {
         require(msg.value >= priceInBNB(amount) * 98/100, "insufficient fee");
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
@@ -107,22 +67,47 @@ contract BLBIO is BLBIOAdministration {
         emit BuyInBNB(amount, msg.value);
     }
 
-    /**
-     * @dev buy BLB Token paying in BUSD.
-     *
-     * @notice multiplied by 10^18.
-     *
-     * @notice requirement:
-     *   - there must be sufficient BLB token in ICO.
-     *   - Buyer must approve the ICO to spend required BUSD.
-     *
-     * @notice emits a BuyInBUSD event
-     */
     function buyInBUSD(uint256 amount) public {
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
         uint256 payableBUSD = priceInUSD(amount);
         BUSD.transferFrom(msg.sender, address(this), payableBUSD); 
         BLB.transfer(msg.sender, amount);       
         emit BuyInBUSD(amount, payableBUSD);
+    }
+
+    uint256 fraction;
+    
+    struct UserClaim{
+        uint256 initialAmount;
+        uint256 claimedAmount;
+        bool freeToClaim;
+    }
+    mapping(address => UserClaim) userClaims;
+
+    function totalClaimable(address claimant) public view returns(uint256) {
+        UserClaim storage uc = userClaims[claimant];
+        return uc.initialAmount - uc.claimedAmount;
+    }
+
+    function claimable(address claimant) public view returns(uint256) {
+        UserClaim storage uc = userClaims[claimant];
+        
+        if(uc.freeToClaim) {
+            return totalClaimable(claimant);
+        } else {
+            return uc.initialAmount * fraction/1000000  - uc.claimedAmount;
+        }
+    }
+
+    function claim() public {
+        address claimant = msg.sender; 
+        UserClaim storage uc = userClaims[claimant];
+        uint256 _claimable = claimable(claimant);
+
+        require(_claimable != 0, "BLBIO: there is no BLB to claim");
+
+        uc.claimedAmount += _claimable;
+
+        BLB.transfer(claimant, _claimable);       
     }
 }
