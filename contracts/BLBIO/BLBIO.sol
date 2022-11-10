@@ -32,8 +32,16 @@ contract BLBIO is BLBIOAdministration {
         ); 
     }
 
-    event BuyInBNB(uint256 indexed amountBLB, uint256 indexed amountBNB);
-    event BuyInBUSD(uint256 indexed amountBLB, uint256 indexed amountBUSD);
+    event BuyInBNB(
+        address indexed buyer,
+        uint256 indexed amountBLB, 
+        uint256 indexed amountBNB
+    );
+    event BuyInBUSD(
+        address indexed buyer,
+        uint256 indexed amountBLB, 
+        uint256 indexed amountBUSD
+    );
     event Claim(
         address indexed claimant,
         uint256 indexed amountBLB
@@ -54,18 +62,19 @@ contract BLBIO is BLBIOAdministration {
 
 
     function buyInBNB(uint256 amount) public payable {
+        address buyer = msg.sender;
         require(msg.value >= priceInBNB(amount) * 98/100, "insufficient fee");
-        require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
-        BLB.transfer(msg.sender, amount);
-        emit BuyInBNB(amount, msg.value);
+        userClaims[buyer].initialAmount += amount;       
+        emit BuyInBNB(buyer, amount, msg.value);
     }
 
     function buyInBUSD(uint256 amount) public {
+        address buyer = msg.sender;
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
         uint256 payableBUSD = priceInUSD(amount);
-        BUSD.transferFrom(msg.sender, address(this), payableBUSD); 
-        BLB.transfer(msg.sender, amount);       
-        emit BuyInBUSD(amount, payableBUSD);
+        BUSD.transferFrom(buyer, address(this), payableBUSD); 
+        userClaims[buyer].initialAmount += amount;       
+        emit BuyInBUSD(buyer, amount, payableBUSD);
     }
 
     uint256 public claimableFraction;
@@ -103,6 +112,7 @@ contract BLBIO is BLBIOAdministration {
         uint256 _claimable = claimable(claimant);
 
         require(_claimable != 0, "BLBIO: there is no BLB to claim");
+        require(BLB.balanceOf(address(this)) >= _claimable, "insufficient BLB in the contract");
 
         uc.claimedAmount += _claimable;
 
