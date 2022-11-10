@@ -5,17 +5,6 @@ import "@chainlink/contracts/src/v0.8/interfaces/AggregatorInterface.sol";
 import "./BLBIOAdministration.sol";
 
 
-/**
- * @title BLB Initial Offering
- *
- * @dev BLB Token is offered in BNB and BUSD(USDT).
- * @dev the prices are set in USD and calculated to corresponding BNB in 
- *   every buy transaction via chainlink price feed aggregator.
- * @dev there two sale plan; public sale price for small amounts and private sale
- *  price for large amounts of blb.
- * @dev since solidity does not support floating variables, all prices are
- *   multiplied by 10^18 to embrace decimals.
- */
 contract BLBIO is BLBIOAdministration {
 
     AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
@@ -30,16 +19,10 @@ contract BLBIO is BLBIOAdministration {
 
 
     constructor() {
-        //addresses on bsc testnet
         BLB = IERC20(0x134341a04B11B1FD697Fc57Eab7D96bDbcdEa414); 
         BUSD = IERC20(0xCd57b180aeA8B61C7b273785748988A3A8eAb9c2);
         AGGREGATOR_BUSD_BNB = AggregatorInterface(0x0630521aC362bc7A19a4eE44b57cE72Ea34AD01c);
 
-        // //addresses on bsc mainnet
-        // BLB = IERC20(0x3034e7400F7DE5559475a6f0398d26991f965ca3); 
-        // BUSD = IERC20(0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56);
-        // AGGREGATOR_BUSD_BNB = AggregatorInterface(0x87Ea38c9F24264Ec1Fff41B04ec94a97Caf99941);
-        
         setPriceInUSD(
             0.30 * 10 ** 18, //equals 0.3 USD
             0.28 * 10 ** 18  //equals 0.28 USD
@@ -51,7 +34,10 @@ contract BLBIO is BLBIOAdministration {
 
     event BuyInBNB(uint256 indexed amountBLB, uint256 indexed amountBNB);
     event BuyInBUSD(uint256 indexed amountBLB, uint256 indexed amountBUSD);
-
+    event Claim(
+        address indexed claimant,
+        uint256 indexed amountBLB
+    );
 
     function priceInUSD(uint256 amount) public view returns(uint256) {
         require(!soldOut, "BLBIO: sold out!");
@@ -120,6 +106,8 @@ contract BLBIO is BLBIOAdministration {
 
         uc.claimedAmount += _claimable;
 
-        BLB.transfer(claimant, _claimable);       
+        BLB.transfer(claimant, _claimable); 
+
+        emit Claim(claimant, _claimable);      
     }
 }
