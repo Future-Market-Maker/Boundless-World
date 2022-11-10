@@ -32,17 +32,17 @@ contract BLBIO is BLBIOAdministration {
 
     event BuyInBNB(
         address indexed buyer,
-        uint256 indexed amountBLB, 
-        uint256 indexed amountBNB
+        uint256 amountBLB, 
+        uint256 amountBNB
     );
     event BuyInBUSD(
         address indexed buyer,
-        uint256 indexed amountBLB, 
-        uint256 indexed amountBUSD
+        uint256 amountBLB, 
+        uint256 amountBUSD
     );
     event Claim(
         address indexed claimant,
-        uint256 indexed amountBLB
+        uint256 amountBLB
     );
 
     function priceInUSD(uint256 amount) public view returns(uint256) {

@@ -23,6 +23,7 @@ abstract contract BLBIOAdministration is Ownable {
     ) public onlyOwner {
         userClaims[addr].total += amount; 
         userClaims[addr].freeToClaim = freeToClaim; 
+        TotalClaimable += amount;
     }
 
 //------------------------------------------------------------------------------------
