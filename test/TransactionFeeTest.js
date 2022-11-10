@@ -202,34 +202,56 @@ describe('TransactionFeeTest', async function () {
             await BLBAddr.transactionFee(100),
             1
         )
-        await BLBAddr.connect(user1).approve(user2.address, 10)
-        await BLBAddr.restrict(user2.address, 10)
+        assert.equal(
+            await BLBAddr.balanceOf(user1.address),
+            9
+        )
+        await BLBAddr.restrict(user1.address, 9)
 
         assert.equal(
-            await BLBAddr.canSpend(user2.address),
-            10
+            await BLBAddr.canSpend(user1.address),
+            9
         )
 
-    //     await BLBAddr.connect(user2).transferFrom(user1.address, deployer.address, 10)
+        await BLBAddr.connect(user1).transfer(user2.address, 8)
 
-    //     assert.equal(
-    //         await BLBAddr.canSpend(user2.address),
-    //         10
-    //     )
+        assert.equal(
+            await BLBAddr.canSpend(user1.address),
+            1
+        )
+        assert.equal(
+            await BLBAddr.balanceOf(user1.address),
+            0
+        )
+        await BLBAddr.district(user1.address)
+    })
 
-    //     assert.equal(
-    //         await BLBAddr.balanceOf(user2.address),
-    //         76
-    //     )
+    it('fees should not be deducted from monthly limit', async () => {
+        await BLBAddr.setTransactionFee(1, 0, zero_address)
+        
+        assert.equal(
+            await BLBAddr.balanceOf(user1.address),
+            0
+        )
 
-    //     assert.equal(
-    //         await BLBAddr.balanceOf(user1.address),
-    //         0
-    //     )
+        await BLBAddr.setMonthlyTransferLimit(500000)
 
-    //     assert.equal(
-    //         await BLBAddr.balanceOf(deployer.address),
-    //         21
-    //     )
+        await BLBAddr.mint(user1.address, 10)
+
+        assert.equal(
+            await BLBAddr.canSpend(user1.address),
+            5
+        )
+
+        await BLBAddr.connect(user1).transfer(user2.address, 5)
+
+        assert.equal(
+            await BLBAddr.balanceOf(user1.address),
+            4
+        )
+        assert.equal(
+            await BLBAddr.canSpend(user1.address),
+            0
+        )
     })
 })
