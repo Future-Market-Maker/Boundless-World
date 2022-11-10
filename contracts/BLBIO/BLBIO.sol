@@ -23,6 +23,11 @@ contract BLBIO is BLBIOAdministration {
     IERC20 public BLB;
     IERC20 public BUSD;
 
+    bool public soldOut;
+    function setSoldOut() public onlyOwner {
+        soldOut = soldOut ? false : true;
+    }
+
 
     constructor() {
         //addresses on bsc testnet
@@ -49,12 +54,14 @@ contract BLBIO is BLBIOAdministration {
 
 
     function priceInUSD(uint256 amount) public view returns(uint256) {
+        require(!soldOut, "BLBIO: sold out!");
         return amount > retailLimit ? privatePriceInUSD : publicPriceInUSD
             * amount / 10 ** 18;
     }
 
 
     function priceInBNB(uint256 amount) public view returns(uint256) {
+        require(!soldOut, "BLBIO: sold out!");
         return uint256(AGGREGATOR_BUSD_BNB.latestAnswer())
             * priceInUSD(amount) / 10 ** 18;
     }
@@ -75,8 +82,13 @@ contract BLBIO is BLBIOAdministration {
         emit BuyInBUSD(amount, payableBUSD);
     }
 
-    uint256 fraction;
-    
+    uint256 public claimableFraction;
+    function increaseClaimableFraction(uint256 fraction) public onlyOwner {
+        claimableFraction += fraction;
+
+        require(claimableFraction <= 1000000, "BLBIO: fraction exceeds 10^6");
+    }
+
     struct UserClaim{
         uint256 initialAmount;
         uint256 claimedAmount;
@@ -95,7 +107,7 @@ contract BLBIO is BLBIOAdministration {
         if(uc.freeToClaim) {
             return totalClaimable(claimant);
         } else {
-            return uc.initialAmount * fraction/1000000  - uc.claimedAmount;
+            return uc.initialAmount * claimableFraction/1000000  - uc.claimedAmount;
         }
     }
 
