@@ -115,7 +115,6 @@ describe('TransactionFeeTest', async function () {
             await BLBAddr.transactionFee(100),
             1
         )
-        await BLBAddr.setMonthlyTransferLimit(1000000)
         await expect(
             BLBAddr.connect(user2).transfer(user1.address, 100)
         ).to.be.revertedWith("ERC20: transfer amount exceeds balance")
@@ -195,63 +194,4 @@ describe('TransactionFeeTest', async function () {
         )
     })
 
-
-    it('fees should not be deducted from restricted addresses spendable fund', async () => {
-        await BLBAddr.setTransactionFee(1, 0, zero_address)
-        assert.equal(
-            await BLBAddr.transactionFee(100),
-            1
-        )
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            9
-        )
-        await BLBAddr.restrict(user1.address, 9)
-
-        assert.equal(
-            await BLBAddr.canSpend(user1.address),
-            9
-        )
-
-        await BLBAddr.connect(user1).transfer(user2.address, 8)
-
-        assert.equal(
-            await BLBAddr.canSpend(user1.address),
-            1
-        )
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            0
-        )
-        await BLBAddr.district(user1.address)
-    })
-
-    it('fees should not be deducted from monthly limit', async () => {
-        await BLBAddr.setTransactionFee(1, 0, zero_address)
-        
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            0
-        )
-
-        await BLBAddr.setMonthlyTransferLimit(500000)
-
-        await BLBAddr.mint(user1.address, 10)
-
-        assert.equal(
-            await BLBAddr.canSpend(user1.address),
-            5
-        )
-
-        await BLBAddr.connect(user1).transfer(user2.address, 5)
-
-        assert.equal(
-            await BLBAddr.balanceOf(user1.address),
-            4
-        )
-        assert.equal(
-            await BLBAddr.canSpend(user1.address),
-            0
-        )
-    })
 })

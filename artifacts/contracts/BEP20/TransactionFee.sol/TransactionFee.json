@@ -194,33 +194,7 @@
     },
     {
       "inputs": [],
-      "name": "RESTRICTOR_ROLE",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "TRANSACTION_FEE_SETTER",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "TRANSFER_LIMIT_SETTER",
       "outputs": [
         {
           "internalType": "bytes32",

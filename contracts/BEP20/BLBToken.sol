@@ -5,7 +5,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
-import "./TransferControl.sol";
 import "./TransactionFee.sol";
 
 /**
@@ -16,8 +15,7 @@ contract BLBToken is
     ERC20Capped, 
     ERC20Burnable, 
     ERC20Permit, 
-    TransactionFee,
-    TransferControl
+    TransactionFee
 {
 
     constructor(address initialAdmin) 
@@ -28,8 +26,6 @@ contract BLBToken is
         _grantRole(DEFAULT_ADMIN_ROLE, initialAdmin);
         _grantRole(MINTER_ROLE, initialAdmin);
         _grantRole(TRANSACTION_FEE_SETTER, initialAdmin);
-        _grantRole(TRANSFER_LIMIT_SETTER, initialAdmin);
-        _grantRole(RESTRICTOR_ROLE, initialAdmin);
         _grantRole(FEE_FREE_ROLE, initialAdmin);
     }
 
@@ -78,7 +74,7 @@ contract BLBToken is
 
     function _beforeTokenTransfer(address from, address to, uint256 amount)
         internal
-        override(ERC20, TransferControl, TransactionFee)
+        override(ERC20, TransactionFee)
     {
         super._beforeTokenTransfer(from, to, amount);
     }
