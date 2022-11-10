@@ -12,6 +12,8 @@ contract BLBIO is BLBIOAdministration {
     IERC20 public BLB;
     IERC20 public BUSD;
 
+    uint256 public TotalClaimable;
+
     bool public soldOut;
     function setSoldOut() public onlyOwner {
         soldOut = soldOut ? false : true;
@@ -53,7 +55,6 @@ contract BLBIO is BLBIOAdministration {
             * amount / 10 ** 18;
     }
 
-
     function priceInBNB(uint256 amount) public view returns(uint256) {
         require(!soldOut, "BLBIO: sold out!");
         return uint256(AGGREGATOR_BUSD_BNB.latestAnswer())
@@ -64,7 +65,8 @@ contract BLBIO is BLBIOAdministration {
     function buyInBNB(uint256 amount) public payable {
         address buyer = msg.sender;
         require(msg.value >= priceInBNB(amount) * 98/100, "insufficient fee");
-        userClaims[buyer].initialAmount += amount;
+        userClaims[buyer].total += amount;
+        TotalClaimable += amount;
         emit BuyInBNB(buyer, amount, msg.value);
     }
 
@@ -73,13 +75,14 @@ contract BLBIO is BLBIOAdministration {
         require(BLB.balanceOf(address(this)) >= amount, "insufficient BLB in the contract");
         uint256 payableBUSD = priceInUSD(amount);
         BUSD.transferFrom(buyer, address(this), payableBUSD); 
-        userClaims[buyer].initialAmount += amount;       
+        userClaims[buyer].total += amount;       
+        TotalClaimable += amount;
         emit BuyInBUSD(buyer, amount, payableBUSD);
     }
 
     function totalClaimable(address claimant) public view returns(uint256) {
         UserClaim storage uc = userClaims[claimant];
-        return uc.initialAmount - uc.claimedAmount;
+        return uc.total - uc.claimed;
     }
 
     function claimable(address claimant) public view returns(uint256) {
@@ -88,7 +91,7 @@ contract BLBIO is BLBIOAdministration {
         if(uc.freeToClaim) {
             return totalClaimable(claimant);
         } else {
-            return uc.initialAmount * claimableFraction/1000000  - uc.claimedAmount;
+            return uc.total * claimableFraction/1000000  - uc.claimed;
         }
     }
 
@@ -100,7 +103,7 @@ contract BLBIO is BLBIOAdministration {
         require(_claimable != 0, "BLBIO: there is no BLB to claim");
         require(BLB.balanceOf(address(this)) >= _claimable, "insufficient BLB in the contract");
 
-        uc.claimedAmount += _claimable;
+        uc.claimed += _claimable;
 
         BLB.transfer(claimant, _claimable); 
 

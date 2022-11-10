@@ -18,8 +18,8 @@ abstract contract BLBIOAdministration is Ownable {
 //------------------------------------------------------------------------------------
 
     struct UserClaim{
-        uint256 initialAmount;
-        uint256 claimedAmount;
+        uint256 total;
+        uint256 claimed;
         bool freeToClaim;
     }
     mapping(address => UserClaim) userClaims;
@@ -29,7 +29,7 @@ abstract contract BLBIOAdministration is Ownable {
         uint256 amount, 
         bool freeToClaim
     ) public onlyOwner {
-        userClaims[claimant].initialAmount += amount; 
+        userClaims[claimant].total += amount; 
         userClaims[claimant].freeToClaim = freeToClaim; 
 
     }
