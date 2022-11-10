@@ -6,44 +6,41 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract BLBIOAdministration is Ownable {
 
-
-//------------------------------------------------------------------------------------
-
-    struct UserClaim {
-        uint256 total;
-        uint256 claimed;
-        bool freeToClaim;
-    }
-    mapping(address => UserClaim) userClaims;
-
-    function giftBLB(
-        address addr, 
-        uint256 amount, 
-        bool freeToClaim
-    ) public onlyOwner {
-        userClaims[addr].total += amount; 
-        userClaims[addr].freeToClaim = freeToClaim; 
-        TotalClaimable += amount;
-    }
-
-//------------------------------------------------------------------------------------
-
+    uint256 public privatePriceInUSD;
+    uint256 public publicPriceInUSD;
+    uint256 public retailLimit;
     uint256 public claimableFraction;
+    uint256 public TotalClaimable;
+
+    IERC20 public BLB;
+    IERC20 public BUSD;
+
+
+    event SetPriceInUSD(uint256 indexed publicPrice, uint256 indexed privatePrice);
+    event SetRetailLimit(uint256 indexed _retailLimit);
+    event Withdraw(string indexed tokenName, uint256 amount);
+
+
+    function blbBalance() public view returns(uint256) {
+        return BLB.balanceOf(address(this));
+    }
+
+    function busdBalance() public view returns(uint256) {
+        return BUSD.balanceOf(address(this));
+    }
+
+    function bnbBalance() public view returns(uint256) {
+        return address(this).balance;
+    }
+
+
+//------------------------------------------------------------------------------------
+
     function increaseClaimableFraction(uint256 fraction) public onlyOwner {
         claimableFraction += fraction;
 
         require(claimableFraction <= 1000000, "BLBIO: fraction exceeds 10^6");
     }
-//------------------------------------------------------------------------------------
-
-    uint256 public retailLimit;
-    uint256 public privatePriceInUSD;
-    uint256 public publicPriceInUSD;
-
-
-    event SetPriceInUSD(uint256 indexed publicPrice, uint256 indexed privatePrice);
-    event SetRetailLimit(uint256 indexed _retailLimit);
-
 
     function setRetailLimit(uint256 _retailLimit) public onlyOwner {
         retailLimit = _retailLimit;
@@ -60,25 +57,6 @@ abstract contract BLBIOAdministration is Ownable {
     }
 
 //------------------------------------------------------------------------------------
-
-    IERC20 public BLB;
-    IERC20 public BUSD;
-
-    uint256 public TotalClaimable;
-
-    function blbBalance() public view returns(uint256) {
-        return BLB.balanceOf(address(this));
-    }
-
-    function busdBalance() public view returns(uint256) {
-        return BUSD.balanceOf(address(this));
-    }
-
-    function bnbBalance() public view returns(uint256) {
-        return address(this).balance;
-    }
-
-    event Withdraw(string indexed tokenName, uint256 amount);
 
     function withdrawBLB(uint256 amount) public onlyOwner {
         BLB.transfer(owner(), amount);

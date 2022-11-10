@@ -10,9 +10,13 @@ contract BLBIO is BLBIOAdministration {
     AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
 
     bool public soldOut;
-    function setSoldOut() public onlyOwner {
-        soldOut = soldOut ? false : true;
+    
+    struct UserClaim {
+        uint256 total;
+        uint256 claimed;
+        bool freeToClaim;
     }
+    mapping(address => UserClaim) userClaims;
 
 
     constructor(
@@ -48,6 +52,9 @@ contract BLBIO is BLBIOAdministration {
         uint256 amountBLB
     );
 
+
+// get -------------------------------------------------------------------------
+
     function priceInUSD(uint256 amount) public view returns(uint256) {
         require(!soldOut, "BLBIO: sold out!");
         return amount > retailLimit ? privatePriceInUSD : publicPriceInUSD
@@ -60,6 +67,23 @@ contract BLBIO is BLBIOAdministration {
             * priceInUSD(amount) / 10 ** 18;
     }
 
+    function totalClaimable(address claimant) public view returns(uint256) {
+        UserClaim storage uc = userClaims[claimant];
+        return uc.total - uc.claimed;
+    }
+
+    function claimable(address claimant) public view returns(uint256) {
+        UserClaim storage uc = userClaims[claimant];
+        
+        if(uc.freeToClaim) {
+            return totalClaimable(claimant);
+        } else {
+            return uc.total * claimableFraction/1000000  - uc.claimed;
+        }
+    }
+
+
+// set -------------------------------------------------------------------------
 
     function buyInBNB(uint256 amount) public payable {
         address buyer = msg.sender;
@@ -79,21 +103,6 @@ contract BLBIO is BLBIOAdministration {
         emit BuyInBUSD(buyer, amount, payableBUSD);
     }
 
-    function totalClaimable(address claimant) public view returns(uint256) {
-        UserClaim storage uc = userClaims[claimant];
-        return uc.total - uc.claimed;
-    }
-
-    function claimable(address claimant) public view returns(uint256) {
-        UserClaim storage uc = userClaims[claimant];
-        
-        if(uc.freeToClaim) {
-            return totalClaimable(claimant);
-        } else {
-            return uc.total * claimableFraction/1000000  - uc.claimed;
-        }
-    }
-
     function claim() public {
         address claimant = msg.sender; 
         UserClaim storage uc = userClaims[claimant];
@@ -107,5 +116,20 @@ contract BLBIO is BLBIOAdministration {
         BLB.transfer(claimant, _claimable); 
 
         emit Claim(claimant, _claimable);      
+    }
+
+    
+    function setSoldOut() public onlyOwner {
+        soldOut = soldOut ? false : true;
+    }
+    
+    function giftBLB(
+        address addr, 
+        uint256 amount, 
+        bool freeToClaim
+    ) public onlyOwner {
+        userClaims[addr].total += amount; 
+        userClaims[addr].freeToClaim = freeToClaim; 
+        TotalClaimable += amount;
     }
 }
