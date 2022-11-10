@@ -6,18 +6,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract BLBIOAdministration is Ownable {
 
-    uint256 public retailLimit;
-
-    event SetRetailLimit(uint256 indexed _retailLimit);
-
-    function setRetailLimit(uint256 _retailLimit) public onlyOwner {
-        retailLimit = _retailLimit;
-        emit SetRetailLimit(_retailLimit);
-    }
 
 //------------------------------------------------------------------------------------
 
-    struct UserClaim{
+    struct UserClaim {
         uint256 total;
         uint256 claimed;
         bool freeToClaim;
@@ -25,13 +17,12 @@ abstract contract BLBIOAdministration is Ownable {
     mapping(address => UserClaim) userClaims;
 
     function giftBLB(
-        address claimant, 
+        address addr, 
         uint256 amount, 
         bool freeToClaim
     ) public onlyOwner {
-        userClaims[claimant].total += amount; 
-        userClaims[claimant].freeToClaim = freeToClaim; 
-
+        userClaims[addr].total += amount; 
+        userClaims[addr].freeToClaim = freeToClaim; 
     }
 
 //------------------------------------------------------------------------------------
@@ -44,10 +35,19 @@ abstract contract BLBIOAdministration is Ownable {
     }
 //------------------------------------------------------------------------------------
 
+    uint256 public retailLimit;
     uint256 public privatePriceInUSD;
     uint256 public publicPriceInUSD;
 
+
     event SetPriceInUSD(uint256 indexed publicPrice, uint256 indexed privatePrice);
+    event SetRetailLimit(uint256 indexed _retailLimit);
+
+
+    function setRetailLimit(uint256 _retailLimit) public onlyOwner {
+        retailLimit = _retailLimit;
+        emit SetRetailLimit(_retailLimit);
+    }
 
     function setPriceInUSD(
         uint256 _publicPrice,
@@ -58,18 +58,39 @@ abstract contract BLBIOAdministration is Ownable {
         emit SetPriceInUSD(_publicPrice, _privatePrice);
     }
 
-
 //------------------------------------------------------------------------------------
 
-    event Withdraw(address indexed tokenAddr, uint256 indexed amount);
+    IERC20 public BLB;
+    IERC20 public BUSD;
 
-    function withdrawERC20(address tokenAddr, uint256 amount) public onlyOwner {
-        IERC20(tokenAddr).transfer(msg.sender, amount);
-        emit Withdraw(tokenAddr, amount);
+    uint256 public TotalClaimable;
+
+    function blbBalance() public view returns(uint256) {
+        return BLB.balanceOf(address(this));
     }
 
-    function withdraw(uint256 amount) public onlyOwner {
-        payable(msg.sender).transfer(amount);
-        emit Withdraw(address(0), amount);
+    function busdBalance() public view returns(uint256) {
+        return BUSD.balanceOf(address(this));
+    }
+
+    function bnbBalance() public view returns(uint256) {
+        return address(this).balance;
+    }
+
+    event Withdraw(string indexed tokenName, uint256 amount);
+
+    function withdrawBLB(uint256 amount) public onlyOwner {
+        BLB.transfer(owner(), amount);
+        emit Withdraw("BLB", amount);
+    }
+
+    function withdrawBUSD(uint256 amount) public onlyOwner {
+        BUSD.transfer(owner(), amount);
+        emit Withdraw("BUSD", amount);
+    }
+
+    function withdrawBNB(uint256 amount) public onlyOwner {
+        payable(owner()).transfer(amount);
+        emit Withdraw("BNB", amount);
     }
 }

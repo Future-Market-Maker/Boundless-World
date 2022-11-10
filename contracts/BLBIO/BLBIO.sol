@@ -9,10 +9,6 @@ contract BLBIO is BLBIOAdministration {
 
     AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
 
-    IERC20 public BLB;
-    IERC20 public BUSD;
-
-    uint256 public TotalClaimable;
 
     bool public soldOut;
     function setSoldOut() public onlyOwner {
