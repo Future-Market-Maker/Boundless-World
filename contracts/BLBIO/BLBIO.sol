@@ -9,7 +9,6 @@ contract BLBIO is BLBIOAdministration {
 
     AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
 
-
     bool public soldOut;
     function setSoldOut() public onlyOwner {
         soldOut = soldOut ? false : true;
