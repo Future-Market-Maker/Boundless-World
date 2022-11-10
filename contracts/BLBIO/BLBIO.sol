@@ -64,7 +64,7 @@ contract BLBIO is BLBIOAdministration {
     function buyInBNB(uint256 amount) public payable {
         address buyer = msg.sender;
         require(msg.value >= priceInBNB(amount) * 98/100, "insufficient fee");
-        userClaims[buyer].initialAmount += amount;       
+        userClaims[buyer].initialAmount += amount;
         emit BuyInBNB(buyer, amount, msg.value);
     }
 
@@ -76,20 +76,6 @@ contract BLBIO is BLBIOAdministration {
         userClaims[buyer].initialAmount += amount;       
         emit BuyInBUSD(buyer, amount, payableBUSD);
     }
-
-    uint256 public claimableFraction;
-    function increaseClaimableFraction(uint256 fraction) public onlyOwner {
-        claimableFraction += fraction;
-
-        require(claimableFraction <= 1000000, "BLBIO: fraction exceeds 10^6");
-    }
-
-    struct UserClaim{
-        uint256 initialAmount;
-        uint256 claimedAmount;
-        bool freeToClaim;
-    }
-    mapping(address => UserClaim) userClaims;
 
     function totalClaimable(address claimant) public view returns(uint256) {
         UserClaim storage uc = userClaims[claimant];
