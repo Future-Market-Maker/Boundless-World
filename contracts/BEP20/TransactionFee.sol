@@ -9,7 +9,6 @@ import "./Administration.sol";
  */
 abstract contract TransactionFee is ERC20, Administration {
 
-
     uint256 feeFraction; // numerator of transaction fee which denominator is 1,000,000
     uint256 feeAmount;   // independent transaction fee for every token transfer
     address feeReceiver; // address of the fee receiver
@@ -31,7 +30,7 @@ abstract contract TransactionFee is ERC20, Administration {
      * @notice requirement:
      *  - Only the owner of the contract can call this function.
      *  - one of the feeAmount or feeFraction must be zero.
-     *  - fee fraction can be a maximum of 50,000 which equals 10% of the transactions
+     *  - fee fraction can be a maximum of 100,000 which equals 10% of the transactions
      * 
      * @dev emits a SetTransactionFee event
      */
