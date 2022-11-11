@@ -7,13 +7,11 @@
     "BUSDTest_1" : "https://rinkeby.etherscan.io/address/0x5a47B08A3e5058CF3b68b583851CCf585718AE44#code",
     "BLBIO_1" : "https://rinkeby.etherscan.io/address/0x418a6625107d3a539741626767a33C31c25F1D8f#code",
 
-    "BLBToken_bsc_testnet" : "https://testnet.bscscan.com/address/0x134341a04B11B1FD697Fc57Eab7D96bDbcdEa414",
+    "BLBToken_bsc_testnet" : "https://testnet.bscscan.com/address/0x984D5774d9Bd67f77B6025fFEe1f773aE678E400#code",
     "BLBToken_bsc_mainnet" : "https://bscscan.com/address/0x3034e7400F7DE5559475a6f0398d26991f965ca3#code",
-    "BLBToken_bsc_mainnet2" : "https://bscscan.com/address/0xC5Bcc193f055e34f78737BC380457F6eDfCb1AC3#code",
 
     "BUSDTest_bsc_testnet" : "https://testnet.bscscan.com/address/0xCd57b180aeA8B61C7b273785748988A3A8eAb9c2#code",
-    "BLBIO_bsc_testnet" : "https://testnet.bscscan.com/address/0x2b74fCeFa7B9982C034fB237755F254645260f47#code",
-    "BLBIO_bsc_mainnet" : "https://bscscan.com/address/0x1FC01B2C5b9b72F5D5FCa5346221255AecB9A35e#code",
+    "BLBIO_bsc_testnet" : "https://testnet.bscscan.com/address/0x67c26F9561387F7d3d9c06Eb8DAA7DBfa43C9A01#code",
+    "BLBIO_bsc_mainnet" : "https://bscscan.com/address/0x1FC01B2C5b9b72F5D5FCa5346221255AecB9A35e#code"
 
-    "BLBIO2_bsc_testnet" : "https://testnet.bscscan.com/address/0x16A2Bb54b000137c467d8dF4Db6c264d8D38EA1e#code"
 }

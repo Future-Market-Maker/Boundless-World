@@ -39,7 +39,7 @@ abstract contract TransactionFee is ERC20, Administration {
         uint256 _feeAmount,
         uint256 _feeFraction, 
         address _feeReceiver
-    ) public onlyRole(TRANSACTION_FEE_SETTER) {
+    ) public onlyRole(FEE_SETTER_ROLE) {
         require(
             _feeFraction == 0 || _feeAmount == 0,
             "TransactionFee: Cannot set feeAmount and feeFraction at the same time"

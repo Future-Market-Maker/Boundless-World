@@ -7,10 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract ERC20Test is ERC20, ERC20Burnable, Ownable {
 
-    constructor(
-        string memory _name, 
-        string memory _symbol
-    ) ERC20(_name, _symbol) {
+    constructor() ERC20("", "") {
         _mint(msg.sender, 100 * 10 ** decimals());
     }
 

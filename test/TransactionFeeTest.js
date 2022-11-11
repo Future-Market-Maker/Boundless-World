@@ -18,7 +18,7 @@ describe('TransactionFeeTest', async function () {
     }) 
 
     it('only admin can set transaction fee', async () => {
-        let feeSetterRole = await BLBAddr.TRANSACTION_FEE_SETTER()
+        let feeSetterRole = await BLBAddr.FEE_SETTER_ROLE()
 
         assert.equal(
             await BLBAddr.hasRole(feeSetterRole, user1.address),

@@ -194,7 +194,7 @@
     },
     {
       "inputs": [],
-      "name": "TRANSACTION_FEE_SETTER",
+      "name": "FEE_SETTER_ROLE",
       "outputs": [
         {
           "internalType": "bytes32",
