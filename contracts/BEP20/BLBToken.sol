@@ -10,13 +10,7 @@ import "./TransactionFee.sol";
 /**
  * @title Boundless World (BLB) Token
  */
-contract BLBToken is 
-    ERC20, 
-    ERC20Capped, 
-    ERC20Burnable, 
-    ERC20Permit, 
-    TransactionFee
-{
+contract BLBToken is ERC20, ERC20Capped, ERC20Burnable, ERC20Permit, TransactionFee {
 
     constructor(address initialAdmin) 
         ERC20("Boundless World", "BLB") 
