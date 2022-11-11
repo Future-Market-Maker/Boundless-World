@@ -181,7 +181,7 @@
     },
     {
       "inputs": [],
-      "name": "MINTER_ROLE",
+      "name": "FEE_SETTER_ROLE",
       "outputs": [
         {
           "internalType": "bytes32",
@@ -194,7 +194,7 @@
     },
     {
       "inputs": [],
-      "name": "FEE_SETTER_ROLE",
+      "name": "MINTER_ROLE",
       "outputs": [
         {
           "internalType": "bytes32",
