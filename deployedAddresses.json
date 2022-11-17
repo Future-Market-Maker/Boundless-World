@@ -8,7 +8,7 @@
     "BLBIO_1" : "https://rinkeby.etherscan.io/address/0x418a6625107d3a539741626767a33C31c25F1D8f#code",
 
     "BLBToken_bsc_testnet" : "https://testnet.bscscan.com/address/0x984D5774d9Bd67f77B6025fFEe1f773aE678E400#code",
-    "BLBToken_bsc_mainnet" : "https://bscscan.com/address/0x3034e7400F7DE5559475a6f0398d26991f965ca3#code",
+    "BLBToken_bsc_mainnet" : "https://bscscan.com/address/0x6a023E642E7702919Ece81d51eeC43C00527B428#code",
 
     "BUSDTest_bsc_testnet" : "https://testnet.bscscan.com/address/0xCd57b180aeA8B61C7b273785748988A3A8eAb9c2#code",
     "BLBIO_bsc_testnet" : "https://testnet.bscscan.com/address/0x2404326F81b1f667841279ad6A655FcdD20eDEd5#code",
