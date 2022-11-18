@@ -65,7 +65,10 @@ abstract contract BLBIOAdministration is Ownable {
     function increaseClaimableFraction(uint256 fraction) public onlyOwner {
         claimableFraction += fraction;
 
-        require(claimableFraction <= 1000000, "BLBIO: fraction exceeds 10^6");
+        require(
+            claimableFraction <= 1000000, 
+            "BLBIOAdministration: fraction exceeds 10^6"
+        );
     }
 
     /**
@@ -93,6 +96,10 @@ abstract contract BLBIOAdministration is Ownable {
         uint256 _publicPrice,
         uint256 _privatePrice
     ) public onlyOwner {
+        require(
+            _publicPrice >= _privatePrice, 
+            "BLBIOAdministration: public price must be greater than or equal to private price"
+        );
         publicPriceInUSD = _publicPrice;
         privatePriceInUSD = _privatePrice;
         emit SetPriceInUSD(_publicPrice, _privatePrice);

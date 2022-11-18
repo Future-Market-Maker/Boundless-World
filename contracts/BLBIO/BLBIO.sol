@@ -10,9 +10,9 @@ import "./BLBIOAdministration.sol";
  * @dev BLB Token is offered in BNB and BUSD(USDT).
  * @dev the prices are set in USD and calculated to corresponding BNB in 
  *   every purchase transaction via chainlink price feed aggregator.
- * @dev the bought blbs are locked in the contract until the Initial offering
+ * @dev the purchased blbs are locked in the contract until the Initial offering
  *   ends. then the owner can unlock proper fraction to be claimed. 
- * @dev there two sale plan; public sale price for small amounts and private sale
+ * @dev there are two sale plan; public sale price for small amounts and private sale
  *  price for large amounts of blb.
  * @dev since solidity does not support floating variables, all prices are
  *   multiplied by 10^18 to embrace decimals.
@@ -35,19 +35,17 @@ contract BLBIO is BLBIOAdministration {
     constructor(
         address _BLBAddr,
         address _BUSDAddr,
-        address _AGGREGATORAddr
+        address _AGGREGATORAddr,
+        uint256 _publicPrice,
+        uint256 _privatePrice,
+        uint256 _retailLimit
     ) {
         BLB = IERC20(_BLBAddr); 
         BUSD = IERC20(_BUSDAddr);
         AGGREGATOR_BUSD_BNB = AggregatorInterface(_AGGREGATORAddr);
 
-        setPriceInUSD(
-            0.30 * 10 ** 18, //equals 0.3 USD
-            0.28 * 10 ** 18  //equals 0.28 USD
-        ); 
-        setRetailLimit(
-            500 * 10 ** 18 //equals 500 blb
-        ); 
+        setPriceInUSD(_publicPrice, _privatePrice); 
+        setRetailLimit(_retailLimit); 
     }
 
     /**
@@ -83,8 +81,8 @@ contract BLBIO is BLBIOAdministration {
      */
     function priceInUSD(uint256 amount) public view returns(uint256) {
         require(!soldOut, "BLBIO: sold out!");
-        return amount > retailLimit ? privatePriceInUSD : publicPriceInUSD
-            * amount / 10 ** 18;
+        uint256 _price = amount > retailLimit ? privatePriceInUSD : publicPriceInUSD;
+        return _price * amount / 10 ** 18;
     }
 
     /**
@@ -134,7 +132,8 @@ contract BLBIO is BLBIOAdministration {
      */
     function purchaseInBNB(uint256 amount) public payable {
         address purchaser = msg.sender;
-        require(msg.value >= priceInBNB(amount) * 98/100, "insufficient fee");
+        require(msg.value >= priceInBNB(amount) * 98/100, "BLBIO: insufficient fee");
+        require(amount > 0 , "BLBIO: zero amount buy");
         userClaims[purchaser].total += amount;
         TotalClaimable += amount;
         emit Purchase(purchaser, "BNB", msg.value, amount);
@@ -149,6 +148,7 @@ contract BLBIO is BLBIOAdministration {
      * @notice emits a Purchase event
      */
     function purchaseInBUSD(uint256 amount) public {
+        require(amount > 0 , "BLBIO: zero amount buy");
         address purchaser = msg.sender;
         uint256 payableBUSD = priceInUSD(amount);
         BUSD.transferFrom(purchaser, address(this), payableBUSD); 
@@ -172,7 +172,7 @@ contract BLBIO is BLBIOAdministration {
         uint256 _claimable = claimable(claimant);
 
         require(_claimable != 0, "BLBIO: there is no BLB to claim");
-        require(BLB.balanceOf(address(this)) >= _claimable, "insufficient BLB in the contract");
+        require(BLB.balanceOf(address(this)) >= _claimable, "BLBIO: insufficient BLB in the contract");
 
         uc.claimed += _claimable;
 
