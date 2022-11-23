@@ -6,9 +6,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 abstract contract BLBIOAdministration is Ownable {
 
-    uint256 public privatePriceInUSD; //price of the token in USD in bulk purchase.
-    uint256 public publicPriceInUSD;  //price of the token in USD in retail purchase.
-    uint256 public retailLimit;       //amount of the token in which the price decreases from retail to bulk.
+    uint256 public publicBLBsPerUSD;  //how much BLBs is earned for 1 USD in retail purchase.
+    uint256 public privateBLBsPerUSD; //how much BLBs is earned for 1 USD in bulk purchase.
+    uint256 public retailLimit;       //amount of USD paid in which the token amount increases from retail to bulk.
+    uint256 public minUSDLimit;       //amount of USD paid in which the token amount increases from retail to bulk.
     uint256 public claimableFraction; //fraction of purchased token that users can claim for now.
     uint256 public TotalClaimable;    //amount of token that users purchased in total and sould be awailable in contract to be claimed.
 
@@ -16,14 +17,19 @@ abstract contract BLBIOAdministration is Ownable {
     IERC20 public BUSD; // the contract address of BUSD token.
 
     /**
-     * @dev emits when the owner sets new prices for private and public blb sale (in USD).
+     * @dev emits when the owner sets new prices for private and public blb sale.
      */
-    event SetPriceInUSD(uint256 indexed publicPrice, uint256 indexed privatePrice);
+    event SetBLBsPerUSD(uint256 indexed publicBLBsAmount, uint256 indexed privateBLBsAmount);
 
     /**
      * @dev emits when the owner sets a new retail limit.
      */
     event SetRetailLimit(uint256 indexed _retailLimit);
+
+    /**
+     * @dev emits when the owner sets a new min USD limit.
+     */
+    event SetMinUSDLimit(uint256 indexed _minAmountUSD);
 
     /**
      * @dev emits when the owner withdraws any amount of BNB or ERC20 token.
@@ -72,6 +78,19 @@ abstract contract BLBIOAdministration is Ownable {
     }
 
     /**
+     * @dev set minimum USD limit;
+     *
+     * @notice requirement:
+     *   - only owner of the contract can call this function.
+     *
+     * @notice emits a SetMinUSDLimit event
+     */
+    function setMinUSDLimit(uint256 amountUSD) public onlyOwner {
+        minUSDLimit = amountUSD;
+        emit SetMinUSDLimit(amountUSD);
+    }
+
+    /**
      * @dev set retail limit;
      *
      * @notice requirement:
@@ -79,9 +98,9 @@ abstract contract BLBIOAdministration is Ownable {
      *
      * @notice emits a SetRetailLimit event
      */
-    function setRetailLimit(uint256 _retailLimit) public onlyOwner {
-        retailLimit = _retailLimit;
-        emit SetRetailLimit(_retailLimit);
+    function setRetailLimit(uint256 amountUSD) public onlyOwner {
+        retailLimit = amountUSD;
+        emit SetRetailLimit(amountUSD);
     }
 
     /**
@@ -90,19 +109,19 @@ abstract contract BLBIOAdministration is Ownable {
      * @notice requirement:
      *   - only owner of the contract can call this function.
      *
-     * @notice emits a SetPriceInUSD event
+     * @notice emits a SetBLBsPerUSD event
      */
-    function setPriceInUSD(
-        uint256 _publicPrice,
-        uint256 _privatePrice
+    function setBLBsPerUSD(
+        uint256 publiceBLBsAmount,
+        uint256 privateBLBsAmount
     ) public onlyOwner {
         require(
-            _publicPrice >= _privatePrice, 
-            "BLBIOAdministration: public price must be greater than or equal to private price"
+            publiceBLBsAmount <= privateBLBsAmount, 
+            "BLBIOAdministration: private amount must be greater than or equal to public amount"
         );
-        publicPriceInUSD = _publicPrice;
-        privatePriceInUSD = _privatePrice;
-        emit SetPriceInUSD(_publicPrice, _privatePrice);
+        publicBLBsPerUSD = publiceBLBsAmount;
+        privateBLBsPerUSD = privateBLBsAmount;
+        emit SetBLBsPerUSD(publiceBLBsAmount, privateBLBsAmount);
     }
 
 //------------------------------------------------------------------------------------

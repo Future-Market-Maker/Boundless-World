@@ -20,7 +20,7 @@ import "./BLBIOAdministration.sol";
 contract BLBIO is BLBIOAdministration {
 
     //price feed aggregator
-    AggregatorInterface immutable AGGREGATOR_BUSD_BNB;
+    AggregatorInterface immutable AGGREGATOR_BNB_USD;
 
     bool public soldOut; //false means users can purchase, true means blb sold out
     
@@ -36,16 +36,18 @@ contract BLBIO is BLBIOAdministration {
         address _BLBAddr,
         address _BUSDAddr,
         address _AGGREGATORAddr,
-        uint256 _publicPrice,
-        uint256 _privatePrice,
-        uint256 _retailLimit
+        uint256 _publicBLBsPerUSD,
+        uint256 _privateBLBsPerUSD,
+        uint256 _retailLimitUSD,
+        uint256 _minUSDLimit
     ) {
         BLB = IERC20(_BLBAddr); 
         BUSD = IERC20(_BUSDAddr);
-        AGGREGATOR_BUSD_BNB = AggregatorInterface(_AGGREGATORAddr);
+        AGGREGATOR_BNB_USD = AggregatorInterface(_AGGREGATORAddr);
 
-        setPriceInUSD(_publicPrice, _privatePrice); 
-        setRetailLimit(_retailLimit); 
+        setBLBsPerUSD(_publicBLBsPerUSD, _privateBLBsPerUSD); 
+        setRetailLimit(_retailLimitUSD); 
+        setMinUSDLimit(_minUSDLimit); 
     }
 
     /**
@@ -75,25 +77,31 @@ contract BLBIO is BLBIOAdministration {
 // get -------------------------------------------------------------------------
 
     /**
-     * @return price of the token in USD.
-     *
-     * @notice the private and public price are calculated automatically.
+     * @return price BNB/USD. (8 digits decimals)
      */
-    function priceInUSD(uint256 amount) public view returns(uint256) {
-        require(!soldOut, "BLBIO: sold out!");
-        uint256 _price = amount > retailLimit ? privatePriceInUSD : publicPriceInUSD;
-        return _price * amount / 10 ** 18;
+    function priceBNB() public view returns(uint256) {
+        return uint256(AGGREGATOR_BNB_USD.latestAnswer());
     }
 
     /**
-     * @return price of the token in BNB corresponding to the USD price.
+     * @return amount BLBs is earned for USD.
      *
-     * @notice the private and public price are calculated automatically.
+     * @notice the private and public amount are calculated automatically.
      */
-    function priceInBNB(uint256 amount) public view returns(uint256) {
+    function BLBsForUSD(uint256 amountBUSD) public view returns(uint256) {
         require(!soldOut, "BLBIO: sold out!");
-        return uint256(AGGREGATOR_BUSD_BNB.latestAnswer())
-            * priceInUSD(amount) / 10 ** 18;
+        uint256 amountPerUSD = amountBUSD >= retailLimit ? privateBLBsPerUSD : publicBLBsPerUSD;
+        return amountPerUSD * amountBUSD / 10 ** 18;
+    }
+
+    /**
+     * @return amount BLBs is earned for BNB.
+     *
+     * @notice the private and public amount are calculated automatically.
+     */
+    function BLBsForBNB(uint256 amountBNB) public view returns(uint256) {
+        require(!soldOut, "BLBIO: sold out!");
+        return BLBsForUSD(amountBNB * priceBNB() / 10 ** 8);
     }
 
     /**
@@ -123,20 +131,22 @@ contract BLBIO is BLBIOAdministration {
     /**
      * @dev purchase BLB Token paying in BNB.
      *
-     * @notice maximum tolerance 2%.
-     *
      * @notice requirement:
      *   - required amount must be paid in BNB.
      *
      * @notice emits a Purchase event
      */
-    function purchaseInBNB(uint256 amount) public payable {
+    function purchaseInBNB() public payable {
         address purchaser = msg.sender;
-        require(msg.value >= priceInBNB(amount) * 98/100, "BLBIO: insufficient fee");
-        require(amount > 0 , "BLBIO: zero amount buy");
-        userClaims[purchaser].total += amount;
-        TotalClaimable += amount;
-        emit Purchase(purchaser, "BNB", msg.value, amount);
+        uint256 amountBNB = msg.value;
+        uint256 amountBLB = BLBsForBNB(amountBNB);
+        require(
+            amountBNB * priceBNB() / 10 ** 8 >= minUSDLimit, 
+            "BLBIO: less than minimum amount BNB"
+        );
+        userClaims[purchaser].total += amountBLB;
+        TotalClaimable += amountBLB;
+        emit Purchase(purchaser, "BNB", amountBNB, amountBLB);
     }
 
     /**
@@ -147,14 +157,17 @@ contract BLBIO is BLBIOAdministration {
      *
      * @notice emits a Purchase event
      */
-    function purchaseInBUSD(uint256 amount) public {
-        require(amount > 0 , "BLBIO: zero amount buy");
+    function purchaseInBUSD(uint256 amountBUSD) public {
+        require(
+            amountBUSD >= minUSDLimit, 
+            "BLBIO: less than minimum amount BUSD"
+        );
         address purchaser = msg.sender;
-        uint256 payableBUSD = priceInUSD(amount);
-        BUSD.transferFrom(purchaser, address(this), payableBUSD); 
-        userClaims[purchaser].total += amount;       
-        TotalClaimable += amount;
-        emit Purchase(purchaser, "BUSD", payableBUSD, amount);
+        uint256 amountBLB = BLBsForUSD(amountBUSD);
+        BUSD.transferFrom(purchaser, address(this), amountBUSD); 
+        userClaims[purchaser].total += amountBLB;       
+        TotalClaimable += amountBLB;
+        emit Purchase(purchaser, "BUSD", amountBUSD, amountBLB);
     }
 
     /**

@@ -28,17 +28,30 @@
         {
           "indexed": true,
           "internalType": "uint256",
-          "name": "publicPrice",
+          "name": "publicBLBsAmount",
           "type": "uint256"
         },
         {
           "indexed": true,
           "internalType": "uint256",
-          "name": "privatePrice",
+          "name": "privateBLBsAmount",
           "type": "uint256"
         }
       ],
-      "name": "SetPriceInUSD",
+      "name": "SetBLBsPerUSD",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "_minAmountUSD",
+          "type": "uint256"
+        }
+      ],
+      "name": "SetMinUSDLimit",
       "type": "event"
     },
     {
@@ -179,6 +192,19 @@
     },
     {
       "inputs": [],
+      "name": "minUSDLimit",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
       "name": "owner",
       "outputs": [
         {
@@ -192,7 +218,7 @@
     },
     {
       "inputs": [],
-      "name": "privatePriceInUSD",
+      "name": "privateBLBsPerUSD",
       "outputs": [
         {
           "internalType": "uint256",
@@ -205,7 +231,7 @@
     },
     {
       "inputs": [],
-      "name": "publicPriceInUSD",
+      "name": "publicBLBsPerUSD",
       "outputs": [
         {
           "internalType": "uint256",
@@ -240,16 +266,16 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "_publicPrice",
+          "name": "publiceBLBsAmount",
           "type": "uint256"
         },
         {
           "internalType": "uint256",
-          "name": "_privatePrice",
+          "name": "privateBLBsAmount",
           "type": "uint256"
         }
       ],
-      "name": "setPriceInUSD",
+      "name": "setBLBsPerUSD",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -258,7 +284,20 @@
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "_retailLimit",
+          "name": "amountUSD",
+          "type": "uint256"
+        }
+      ],
+      "name": "setMinUSDLimit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountUSD",
           "type": "uint256"
         }
       ],
