@@ -9,7 +9,7 @@ const { verify } = require("./utils/verifier.js")
     // const AGGREGATOR_BNB_USD_Addr = "0x2514895c72f50D8bd4B4F9b1110F0D6bD2c97526"
 
     //addresses on bsc mainnet
-    const BLB_Addr = "0x6a023E642E7702919Ece81d51eeC43C00527B428"
+    const BLB_Addr = "0x13D67Fd10BDBe8301E978e4AdCBD2c0AD26F7549"
     const BUSD_Addr = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
     const AGGREGATOR_BNB_USD_Addr = "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE"
 
