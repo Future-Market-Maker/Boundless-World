@@ -5,20 +5,13 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-/**
- * @title staking pool 
- * @notice every one can stake BNB and get BLB as benefit.
- */
-contract BNBStakePool is Pausable, Ownable {
-    
-    // BLB address on rinkeby
-    IERC20 immutable BLB = IERC20(0x880BA82fcC12fE7De255FA62C9d0beFb7960c986);
+contract StakeBNB_BLB is Ownable, Pausable {
+    IERC20 public BLB;
 
     uint256 public totalInvestingBNB;
     uint256 public totalPendingBLB;
 
     mapping(uint256 => uint256) public rewardPlans;
-
     mapping(address => Investment[]) public investments;
 
     Checkpoint public checkPoint1;
@@ -60,7 +53,9 @@ contract BNBStakePool is Pausable, Ownable {
         uint256 profit
     );
 
-    constructor() {
+    constructor(IERC20 _BLB) {
+        BLB = _BLB;
+
         setPlan({duration : 1  days, profit: 1   * 10 ** 18});
         setPlan({duration : 7  days, profit: 10  * 10 ** 18});
         setPlan({duration : 30 days, profit: 50  * 10 ** 18});
@@ -188,4 +183,5 @@ contract BNBStakePool is Pausable, Ownable {
     function unpause() public onlyOwner {
         _unpause();
     }
+    
 }
