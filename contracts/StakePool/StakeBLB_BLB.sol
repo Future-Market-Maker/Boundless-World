@@ -11,6 +11,8 @@ contract StakeBLB_BLB is Ownable, Pausable {
     uint256 public totalDepositBLB;
     uint256 public totalPendingBLB;
 
+    uint256[] _plans;
+    mapping(uint256 => bool) planExists;
     mapping(uint256 => uint256) public rewardPlans;
     mapping(address => Investment[]) public investments;
 
@@ -32,26 +34,6 @@ contract StakeBLB_BLB is Ownable, Pausable {
         uint256 saveProfit; //Percent
     }
 
-    event NewInvestment(
-        address indexed investor, 
-        uint256 indexed investId, 
-        uint256 amount, 
-        uint256 start,
-        uint256 end,
-        uint256 profit
-    );
-
-    event Withdraw(
-        address indexed investor, 
-        uint256 indexed investId, 
-        uint256 amountDeposit, 
-        uint256 amountProfit
-    );
-
-    event SetPlan(
-        uint256 indexed duration,
-        uint256 profit
-    );
 
     constructor(IERC20 _BLB) {
         BLB = _BLB;
@@ -75,10 +57,14 @@ contract StakeBLB_BLB is Ownable, Pausable {
         return investments[investor][investmentId].end;
     }
 
+    function userInvestments(address investor) public view returns(Investment[] memory) {
+        return investments[investor];
+    }
+
     function pendingWithdrawal(
         address investor, 
         uint256 investmentId
-    ) public view returns(uint256 amountDeposit, uint256 amountProfit) {
+    ) public view returns(uint256) {
 
         Investment storage investment = investments[investor][investmentId];
 
@@ -86,7 +72,8 @@ contract StakeBLB_BLB is Ownable, Pausable {
             investment.claimTime == 0,
             "stakePool: this investment has been claimed before"
         );
-
+        uint256 amountDeposit; 
+        uint256 amountProfit;
         uint256 currentTime = block.timestamp;
         uint256 start = investment.start;
         uint256 end = investment.end; 
@@ -95,43 +82,43 @@ contract StakeBLB_BLB is Ownable, Pausable {
         uint256 profit = investment.profit; 
 
         if(
-            currentTime > end
+            currentTime >= end
         ){
             amountDeposit = amount;
             amountProfit = profit;
         } else if(
-            currentTime > checkPoint3.passTime * duration /100 + start
+            currentTime >= checkPoint3.passTime * duration /100 + start
         ){
             amountDeposit = amount * checkPoint3.saveDeposit / 100;
             amountProfit = profit * checkPoint3.saveProfit / 100;
         } else if(
-            currentTime > checkPoint2.passTime * duration /100 + start
+            currentTime >= checkPoint2.passTime * duration /100 + start
         ){
             amountDeposit = amount * checkPoint2.saveDeposit / 100;
             amountProfit = profit * checkPoint2.saveProfit / 100;
         } else if(
-            currentTime > checkPoint1.passTime * duration /100 + start
+            currentTime >= checkPoint1.passTime * duration /100 + start
         ){
             amountDeposit = amount * checkPoint1.saveDeposit / 100;
             amountProfit = profit * checkPoint1.saveProfit / 100;
         }
+        return amountDeposit + amountProfit;
     }
 
-    function newInvestment(uint256 duration) public payable whenNotPaused {
+    function newInvestment(uint256 amount, uint256 duration) public whenNotPaused {
         require(rewardPlans[duration] != 0, "there is no plan by this duration");
 
         address investor = msg.sender;
-        uint256 amount = msg.value;
         uint256 start = block.timestamp;
         uint256 end = block.timestamp + duration;
         uint256 profit = amount * rewardPlans[duration] / 10 ** 18;
+
+        BLB.transferFrom(investor, address(this), amount);
 
         investments[investor].push(Investment(amount, start, end, profit, 0));
 
         totalDepositBLB += amount;
         totalPendingBLB += profit;
-
-        emit NewInvestment(investor, investments[investor].length-1, amount, start, end, profit);
     }
 
     function withdraw(uint256 investmentId) public {
@@ -139,19 +126,35 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         Investment storage investment = investments[investor][investmentId];
 
-        (uint256 amountDeposit, uint256 amountProfit) = pendingWithdrawal(investor, investmentId);
+        (uint256 amount) = pendingWithdrawal(investor, investmentId);
 
-        require(amountDeposit > 0, "StakePool: nothing to withdraw");
+        require(amount > 0, "StakePool: nothing to withdraw");
 
         investment.claimTime = block.timestamp;
 
-        investor.transfer(amountDeposit);
-        BLB.transfer(investor, amountProfit);
+        BLB.transfer(investor, amount);
 
         totalDepositBLB -= investment.amount;
         totalPendingBLB -= investment.profit;
+    }
 
-        emit Withdraw(investor, investmentId, amountDeposit, amountProfit);
+    function plans() public view returns(uint256[] memory durations, uint256[] memory profits) {
+        uint256 len = _plans.length;
+        durations = new uint256[](len);
+        profits = new uint256[](len);
+
+        for(uint256 i = 0; i < len; i++) {
+            durations[i] = _plans[i];
+            profits[i] = rewardPlans[_plans[i]];
+        }
+    }
+
+    function setPlan(uint256 duration, uint256 profit) public onlyOwner {
+        rewardPlans[duration]  = profit;
+        if(!planExists[duration]) {
+            planExists[duration] = true;
+            _plans.push(duration);
+        }
     }
 
     function setCheckpoints(
@@ -160,12 +163,8 @@ contract StakeBLB_BLB is Ownable, Pausable {
         uint256 passTime3, uint256 saveDeposit3, uint256 saveProfit3
     ) public onlyOwner {
         checkPoint1 = Checkpoint(passTime1, saveDeposit1, saveProfit1);
-        checkPoint1 = Checkpoint(passTime2, saveDeposit2, saveProfit2);
-        checkPoint1 = Checkpoint(passTime3, saveDeposit3, saveProfit3);
-    }
-
-    function setPlan(uint256 duration, uint256 profit) public onlyOwner {
-        rewardPlans[duration]  = profit;
+        checkPoint2 = Checkpoint(passTime2, saveDeposit2, saveProfit2);
+        checkPoint3 = Checkpoint(passTime3, saveDeposit3, saveProfit3);
     }
 
     function loanBLB(address borrower, uint256 amount) public onlyOwner {
