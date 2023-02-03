@@ -11,6 +11,8 @@ contract StakeBNB_BLB is Ownable, Pausable {
     uint256 public totalInvestingBNB;
     uint256 public totalPendingBLB;
 
+    uint256[] _plans;
+    mapping(uint256 => bool) planExists;
     mapping(uint256 => uint256) public rewardPlans;
     mapping(address => Investment[]) public investments;
 
@@ -68,6 +70,10 @@ contract StakeBNB_BLB is Ownable, Pausable {
         });
     }
 
+    function userInvestments(address investor) public view returns(Investment[] memory) {
+        return investments[investor];
+    }
+
     function releaseTime(
         address investor, 
         uint256 investmentId
@@ -95,22 +101,22 @@ contract StakeBNB_BLB is Ownable, Pausable {
         uint256 profit = investment.profit; 
 
         if(
-            currentTime > end
+            currentTime >= end
         ){
             amountBNB = amount;
             amountBLB = profit;
         } else if(
-            currentTime > checkPoint3.passTime * duration /100 + start
+            currentTime >= checkPoint3.passTime * duration /100 + start
         ){
             amountBNB = amount * checkPoint3.saveBNB / 100;
             amountBLB = profit * checkPoint3.saveBLB / 100;
         } else if(
-            currentTime > checkPoint2.passTime * duration /100 + start
+            currentTime >= checkPoint2.passTime * duration /100 + start
         ){
             amountBNB = amount * checkPoint2.saveBNB / 100;
             amountBLB = profit * checkPoint2.saveBLB / 100;
         } else if(
-            currentTime > checkPoint1.passTime * duration /100 + start
+            currentTime >= checkPoint1.passTime * duration /100 + start
         ){
             amountBNB = amount * checkPoint1.saveBNB / 100;
             amountBLB = profit * checkPoint1.saveBLB / 100;
@@ -160,12 +166,27 @@ contract StakeBNB_BLB is Ownable, Pausable {
         uint256 passTime3, uint256 saveBNB3, uint256 saveBLB3
     ) public onlyOwner {
         checkPoint1 = Checkpoint(passTime1, saveBNB1, saveBLB1);
-        checkPoint1 = Checkpoint(passTime2, saveBNB2, saveBLB2);
-        checkPoint1 = Checkpoint(passTime3, saveBNB3, saveBLB3);
+        checkPoint2 = Checkpoint(passTime2, saveBNB2, saveBLB2);
+        checkPoint3 = Checkpoint(passTime3, saveBNB3, saveBLB3);
+    }
+
+    function plans() public view returns(uint256[] memory durations, uint256[] memory profits) {
+        uint256 len = _plans.length;
+        durations = new uint256[](len);
+        profits = new uint256[](len);
+
+        for(uint256 i = 0; i < len; i++) {
+            durations[i] = _plans[i];
+            profits[i] = rewardPlans[_plans[i]];
+        }
     }
 
     function setPlan(uint256 duration, uint256 profit) public onlyOwner {
         rewardPlans[duration]  = profit;
+        if(!planExists[duration]) {
+            planExists[duration] = true;
+            _plans.push(duration);
+        }
     }
 
     function loanBNB(address borrower, uint256 amount) public onlyOwner {
