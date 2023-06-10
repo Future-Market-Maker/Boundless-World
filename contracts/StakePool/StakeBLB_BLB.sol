@@ -16,9 +16,9 @@ contract StakeBLB_BLB is Ownable, Pausable {
     mapping(uint256 => uint256) public rewardPlans;
     mapping(address => Investment[]) public investments;
 
-    Checkpoint public checkPoint1;
-    Checkpoint public checkPoint2;
-    Checkpoint public checkPoint3;
+    Checkpoint checkpoint1;
+    Checkpoint checkpoint2;
+    Checkpoint checkpoint3;
 
     struct Investment {
         uint256 amount;
@@ -34,14 +34,14 @@ contract StakeBLB_BLB is Ownable, Pausable {
         uint256 saveProfit; //Percent
     }
 
-
     constructor(IERC20 _BLB) {
         BLB = _BLB;
 
-        setPlan({duration : 1  days, profit: 0.01 * 10 ** 18});
-        setPlan({duration : 7  days, profit: 0.1  * 10 ** 18});
-        setPlan({duration : 30 days, profit: 0.5  * 10 ** 18});
-        setPlan({duration : 90 days, profit: 1.8  * 10 ** 18});
+        setPlan({duration : 3   days, profit: 0.001 * 10 ** 18});  // demo   plan
+        setPlan({duration : 30  days, profit: 0.15  * 10 ** 18});  // bronze plan
+        setPlan({duration : 90  days, profit: 0.5   * 10 ** 18});  // silver plan
+        setPlan({duration : 180 days, profit: 1.2   * 10 ** 18});  // gold   plan
+        setPlan({duration : 360 days, profit: 2.5   * 10 ** 18});  // gem    plan
 
         setCheckpoints({
             passTime1 : 0 , saveDeposit1 : 80 , saveProfit1 : 0,
@@ -68,10 +68,6 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         Investment storage investment = investments[investor][investmentId];
 
-        require(
-            investment.claimTime == 0,
-            "stakePool: this investment has been claimed before"
-        );
         uint256 amountDeposit; 
         uint256 amountProfit;
         uint256 currentTime = block.timestamp;
@@ -87,22 +83,33 @@ contract StakeBLB_BLB is Ownable, Pausable {
             amountDeposit = amount;
             amountProfit = profit;
         } else if(
-            currentTime >= checkPoint3.passTime * duration /100 + start
+            currentTime >= checkpoint3.passTime * duration /100 + start
         ){
-            amountDeposit = amount * checkPoint3.saveDeposit / 100;
-            amountProfit = profit * checkPoint3.saveProfit / 100;
+            amountDeposit = amount * checkpoint3.saveDeposit / 100;
+            amountProfit = profit * checkpoint3.saveProfit / 100;
         } else if(
-            currentTime >= checkPoint2.passTime * duration /100 + start
+            currentTime >= checkpoint2.passTime * duration /100 + start
         ){
-            amountDeposit = amount * checkPoint2.saveDeposit / 100;
-            amountProfit = profit * checkPoint2.saveProfit / 100;
+            amountDeposit = amount * checkpoint2.saveDeposit / 100;
+            amountProfit = profit * checkpoint2.saveProfit / 100;
         } else if(
-            currentTime >= checkPoint1.passTime * duration /100 + start
+            currentTime >= checkpoint1.passTime * duration /100 + start
         ){
-            amountDeposit = amount * checkPoint1.saveDeposit / 100;
-            amountProfit = profit * checkPoint1.saveProfit / 100;
+            amountDeposit = amount * checkpoint1.saveDeposit / 100;
+            amountProfit = profit * checkpoint1.saveProfit / 100;
         }
         return amountDeposit + amountProfit;
+    }
+
+    function pendingWithdrawal(
+        address investor
+    ) public view returns(uint256 total) {
+
+        uint256 len = investments[investor].length;
+
+        for(uint256 i; i < len; i++) {
+            total += pendingWithdrawal(investor, i);
+        }
     }
 
     function newInvestment(uint256 amount, uint256 duration) public whenNotPaused {
@@ -149,6 +156,16 @@ contract StakeBLB_BLB is Ownable, Pausable {
         }
     }
 
+    function checkpoints() public view returns(
+        Checkpoint memory checkpoint1_, 
+        Checkpoint memory checkpoint2_, 
+        Checkpoint memory checkpoint3_
+    ){
+        checkpoint1_ = checkpoint1;
+        checkpoint2_ = checkpoint2;
+        checkpoint3_ = checkpoint3;
+    }
+
     function setPlan(uint256 duration, uint256 profit) public onlyOwner {
         rewardPlans[duration]  = profit;
         if(!planExists[duration]) {
@@ -162,9 +179,9 @@ contract StakeBLB_BLB is Ownable, Pausable {
         uint256 passTime2, uint256 saveDeposit2, uint256 saveProfit2,
         uint256 passTime3, uint256 saveDeposit3, uint256 saveProfit3
     ) public onlyOwner {
-        checkPoint1 = Checkpoint(passTime1, saveDeposit1, saveProfit1);
-        checkPoint2 = Checkpoint(passTime2, saveDeposit2, saveProfit2);
-        checkPoint3 = Checkpoint(passTime3, saveDeposit3, saveProfit3);
+        checkpoint1 = Checkpoint(passTime1, saveDeposit1, saveProfit1);
+        checkpoint2 = Checkpoint(passTime2, saveDeposit2, saveProfit2);
+        checkpoint3 = Checkpoint(passTime3, saveDeposit3, saveProfit3);
     }
 
     function loanBLB(address borrower, uint256 amount) public onlyOwner {

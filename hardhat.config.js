@@ -8,7 +8,7 @@ const { PRIVATE_KEY, SMARTCHAIN_API_KEY, MUMBAI_API_KEY, POLYGONSCAN_API_KEY } =
 module.exports = {
   
   solidity: {
-  version: "0.8.17",
+  version: "0.8.18",
   settings: {
     optimizer: {
       enabled: true,
@@ -29,8 +29,11 @@ module.exports = {
       accounts: [`0x${PRIVATE_KEY}`]
     },
     polygonMumbai: {
-      url: `https://polygon-mumbai.g.alchemy.com/v2/${MUMBAI_API_KEY}`,
+      // url: `https://matic-mumbai.chainstacklabs.com`,
+      // url: `https://rpc.ankr.com/polygon_mumbai`,
+      url: `https://polygon-mumbai.blockpi.network/v1/rpc/public`,
       accounts: [`0x${PRIVATE_KEY}`],
+      chainId: 80001,
     },
   },
 
