@@ -13,7 +13,7 @@ let initialAdmin = zero_address
 
   } else if(network.config.chainId == 97) {
 
-    blbAddr = "0xC5197e5dcEE9268EA665086Fe918872bD3Bb5318"
+    blbAddr = "0x31b900DBb288A1FC9BF131a880caA294A9eeAA46"
     initialAdmin = "0x165D9C0f0328faE2aa2222D6b366035592eDBdaC"
 
   } else if(network.config.chainId == 80001) {

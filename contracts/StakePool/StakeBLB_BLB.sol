@@ -61,6 +61,17 @@ contract StakeBLB_BLB is Ownable, Pausable {
         return investments[investor];
     }
 
+    function userTotalStake(address investor) public view returns(uint256 totalStake) {
+        Investment[] storage invests = investments[investor];
+        uint256 len = invests.length;
+
+        for(uint256 i; i < len; i++) {
+            if(invests[i].claimTime == 0) {
+                totalStake += invests[i].amount;
+            }
+        }
+    }
+
     function pendingWithdrawal(
         address investor, 
         uint256 investmentId
