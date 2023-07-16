@@ -2,12 +2,14 @@ const { ethers } = require("hardhat");
 const { verify } = require("./utils/verifier.js")
 let { blbAddr, initialAdmin } = require("./utils/cont.config.js")
 
-  async function deployBLBToken() {
+  async function deployBUSDToken() {
     
-    const BLBToken = await ethers.getContractAt("BLBToken", blbAddr);
-    console.log("BLBToken Contract Address:", BLBToken.address);
+    // const BUSD = await ethers.getContractFactory("BUSDTest");
+    // const BUSDAddr = await BUSD.deploy();
+    // await BUSDAddr.deployed();
+    // console.log("BUSD : ", BUSDAddr.address);
 
-    console.log(await BLBToken.hasRole(await BLBToken.FEE_SETTER_ROLE(), "0x31FBc230BC6b8cE2eE229eCfbACCc364Da3eD7fC"))
+    await verify("0x87cdBfc8531CE5C6f2f07abD0E6E46D06467BA0D",[])
   }   
   
-  deployBLBToken()
+  deployBUSDToken()

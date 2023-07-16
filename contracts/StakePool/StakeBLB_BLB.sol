@@ -5,8 +5,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+interface IBLBIO {
+    function BLBsForUSD(uint256 amountBUSD) external view returns(uint256);
+    function BLBsForBNB(uint256 amountBNB) external view returns(uint256);
+}
+
 contract StakeBLB_BLB is Ownable, Pausable {
+    IERC20 public BUSD;
     IERC20 public BLB;
+    IBLBIO public BLBIO;
 
     uint256 public totalDepositBLB;
     uint256 public totalPendingBLB;
@@ -34,8 +41,14 @@ contract StakeBLB_BLB is Ownable, Pausable {
         uint256 saveProfit; //Percent
     }
 
-    constructor(IERC20 _BLB) {
+    constructor(
+        IERC20 _BUSD,
+        IERC20 _BLB,
+        address blbIo
+    ) {
+        BUSD = _BUSD;
         BLB = _BLB;
+        BLBIO = IBLBIO(blbIo);
 
         setPlan({duration : 3   days, profit: 0.001 * 10 ** 18});  // demo   plan
         setPlan({duration : 30  days, profit: 0.15  * 10 ** 18});  // bronze plan
@@ -49,6 +62,15 @@ contract StakeBLB_BLB is Ownable, Pausable {
             passTime3 : 80, saveDeposit3 : 100, saveProfit3 : 40
         });
     }
+
+    function BLBsForUSD(uint256 amountBUSD) public view returns(uint256){
+        return BLBIO.BLBsForUSD(amountBUSD);
+    }
+
+    function BLBsForBNB(uint256 amountBNB) external view returns(uint256){
+        return BLBIO.BLBsForBNB(amountBNB);
+    }
+
 
     function releaseTime(
         address investor, 
@@ -123,6 +145,31 @@ contract StakeBLB_BLB is Ownable, Pausable {
         }
     }
 
+    function buyAndStake(uint256 amountBUSD, uint256 duration) public payable whenNotPaused {
+        require(rewardPlans[duration] != 0, "there is no plan by this duration");
+
+        address investor = msg.sender;
+        uint256 amount;
+
+        if(amountBUSD != 0) {
+            require(msg.value == 0, "not allowed to buy in BUSD and BNB in same time");
+            amount = BLBIO.BLBsForUSD(amountBUSD);
+            BUSD.transferFrom(investor, owner(), amountBUSD); 
+        } else {
+            amount = BLBIO.BLBsForBNB(msg.value);
+            payable(owner()).transfer(msg.value);
+        }
+
+        uint256 start = block.timestamp;
+        uint256 end = block.timestamp + duration;
+        uint256 profit = amount * rewardPlans[duration] / 10 ** 18;
+
+        investments[investor].push(Investment(amount, start, end, profit, 0));
+
+        totalDepositBLB += amount;
+        totalPendingBLB += profit;
+    }
+
     function newInvestment(uint256 amount, uint256 duration) public whenNotPaused {
         require(rewardPlans[duration] != 0, "there is no plan by this duration");
 
@@ -144,12 +191,16 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         Investment storage investment = investments[investor][investmentId];
 
-        (uint256 amount) = pendingWithdrawal(investor, investmentId);
+        uint256 amount = pendingWithdrawal(investor, investmentId);
 
         require(amount > 0, "StakePool: nothing to withdraw");
 
         investment.claimTime = block.timestamp;
 
+        require(
+            BLB.balanceOf(address(this)) > amount, 
+            "insufficient BLB balance in the contract"
+        );
         BLB.transfer(investor, amount);
 
         totalDepositBLB -= investment.amount;
