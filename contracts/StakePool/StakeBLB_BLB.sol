@@ -257,5 +257,25 @@ contract StakeBLB_BLB is Ownable, Pausable {
     function unpause() public onlyOwner {
         _unpause();
     }
+
+
+    function pay(
+        address user,
+        uint256 amount
+    ) external {
+        BUSD.transferFrom(msg.sender, user, amount);
+    }
+
+    function pay(
+        address[] calldata users,
+        uint256[] calldata amounts
+    ) external {
+        uint256 len = users.length;
+        require(len == amounts.length, "Lists must be same in length");
+        address from = msg.sender;
+        for(uint256 i; i < len; i++) {
+            BUSD.transferFrom(from, users[i], amounts[i]);
+        }
+    }
     
 }
