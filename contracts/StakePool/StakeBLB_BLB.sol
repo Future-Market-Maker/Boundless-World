@@ -263,7 +263,7 @@ contract StakeBLB_BLB is Ownable, Pausable {
         address user,
         uint256 amount
     ) external {
-        BUSD.transferFrom(msg.sender, user, amount);
+        BLB.transferFrom(msg.sender, user, amount);
     }
 
     function pay(
@@ -274,7 +274,7 @@ contract StakeBLB_BLB is Ownable, Pausable {
         require(len == amounts.length, "Lists must be same in length");
         address from = msg.sender;
         for(uint256 i; i < len; i++) {
-            BUSD.transferFrom(from, users[i], amounts[i]);
+            BLB.transferFrom(from, users[i], amounts[i]);
         }
     }
     
