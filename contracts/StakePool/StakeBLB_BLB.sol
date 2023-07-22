@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-interface IBLBIO {
+interface IBLBSwap {
     function BLBsForUSD(uint256 amountBUSD) external view returns(uint256);
     function BLBsForBNB(uint256 amountBNB) external view returns(uint256);
 }
@@ -13,7 +13,7 @@ interface IBLBIO {
 contract StakeBLB_BLB is Ownable, Pausable {
     IERC20 public BUSD;
     IERC20 public BLB;
-    IBLBIO public BLBIO;
+    IBLBSwap public BLBSwap;
 
     uint256 public totalDepositBLB;
     uint256 public totalPendingBLB;
@@ -44,11 +44,11 @@ contract StakeBLB_BLB is Ownable, Pausable {
     constructor(
         IERC20 _BUSD,
         IERC20 _BLB,
-        address blbIo
+        address blbSwap
     ) {
         BUSD = _BUSD;
         BLB = _BLB;
-        BLBIO = IBLBIO(blbIo);
+        BLBSwap = IBLBSwap(blbSwap);
 
         setPlan({duration : 3   days, profit: 0.001 * 10 ** 18});  // demo   plan
         setPlan({duration : 30  days, profit: 0.15  * 10 ** 18});  // bronze plan
@@ -64,11 +64,11 @@ contract StakeBLB_BLB is Ownable, Pausable {
     }
 
     function BLBsForUSD(uint256 amountBUSD) public view returns(uint256){
-        return BLBIO.BLBsForUSD(amountBUSD);
+        return BLBSwap.BLBsForUSD(amountBUSD);
     }
 
     function BLBsForBNB(uint256 amountBNB) external view returns(uint256){
-        return BLBIO.BLBsForBNB(amountBNB);
+        return BLBSwap.BLBsForBNB(amountBNB);
     }
 
 
@@ -153,10 +153,10 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         if(amountBUSD != 0) {
             require(msg.value == 0, "not allowed to buy in BUSD and BNB in same time");
-            amount = BLBIO.BLBsForUSD(amountBUSD);
+            amount = BLBSwap.BLBsForUSD(amountBUSD);
             BUSD.transferFrom(investor, owner(), amountBUSD); 
         } else {
-            amount = BLBIO.BLBsForBNB(msg.value);
+            amount = BLBSwap.BLBsForBNB(msg.value);
             payable(owner()).transfer(msg.value);
         }
 
@@ -258,6 +258,9 @@ contract StakeBLB_BLB is Ownable, Pausable {
         _unpause();
     }
 
+    function changeBLBSwap(address _BLBSwap) public onlyOwner {
+        BLBSwap = IBLBSwap(_BLBSwap);
+    }
 
     function pay(
         address user,

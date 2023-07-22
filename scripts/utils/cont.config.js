@@ -11,7 +11,7 @@ let aggrAddr = zero_address
 
   if(network.config.chainId == 56) {
 
-    // const initialAdmin = "0x31FBc230BC6b8cE2eE229eCfbACCc364Da3eD7fC";
+    initialAdmin = "0x31FBc230BC6b8cE2eE229eCfbACCc364Da3eD7fC";
     // const initialAdmin = "0xfd4299C480dEcE1f48e514e2D3c6F38815677106";
     busdAddr = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
     aggrAddr = "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE"

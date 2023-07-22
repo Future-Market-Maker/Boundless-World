@@ -1,6 +1,6 @@
 {
   "_format": "hh-sol-artifact-1",
-  "contractName": "IBLBIO",
+  "contractName": "IBLBSwap",
   "sourceName": "contracts/StakePool/StakeBLB_BLB.sol",
   "abi": [
     {
