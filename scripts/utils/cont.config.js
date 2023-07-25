@@ -30,6 +30,9 @@ let aggrAddr = zero_address
   } else if(network.config.chainId == 80001) {
     blbAddr = "0x8e1F21378DD47dA995bD14AFA14b5a2aBCD44d73"
     initialAdmin = "0x165D9C0f0328faE2aa2222D6b366035592eDBdaC"
+  } else {
+    blbAddr = "0x8e1F21378DD47dA995bD14AFA14b5a2aBCD44d73"
+    initialAdmin = "0x165D9C0f0328faE2aa2222D6b366035592eDBdaC"
   }
 
 

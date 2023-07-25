@@ -4,13 +4,17 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 interface IBLBSwap {
     function BLBsForUSD(uint256 amountBUSD) external view returns(uint256);
     function BLBsForBNB(uint256 amountBNB) external view returns(uint256);
 }
 
+
 contract StakeBLB_BLB is Ownable, Pausable {
+    using EnumerableSet for EnumerableSet.UintSet;
+
     IERC20 public BUSD;
     IERC20 public BLB;
     IBLBSwap public BLBSwap;
@@ -18,9 +22,6 @@ contract StakeBLB_BLB is Ownable, Pausable {
     uint256 public totalDepositBLB;
     uint256 public totalPendingBLB;
 
-    uint256[] _plans;
-    mapping(uint256 => bool) planExists;
-    mapping(uint256 => uint256) public rewardPlans;
     mapping(address => Investment[]) public investments;
 
     Checkpoint checkpoint1;
@@ -44,23 +45,27 @@ contract StakeBLB_BLB is Ownable, Pausable {
     constructor(
         IERC20 _BUSD,
         IERC20 _BLB,
-        address blbSwap
+        address blbSwap,
+        uint256[] memory _timePlans_,
+        uint256[] memory _investPlanAmounts_,
+        uint256[] memory _investPlanProfits_
     ) {
         BUSD = _BUSD;
         BLB = _BLB;
         BLBSwap = IBLBSwap(blbSwap);
-
-        setPlan({duration : 3   days, profit: 0.001 * 10 ** 18});  // demo   plan
-        setPlan({duration : 30  days, profit: 0.15  * 10 ** 18});  // bronze plan
-        setPlan({duration : 90  days, profit: 0.5   * 10 ** 18});  // silver plan
-        setPlan({duration : 180 days, profit: 1.2   * 10 ** 18});  // gold   plan
-        setPlan({duration : 360 days, profit: 2.5   * 10 ** 18});  // gem    plan
 
         setCheckpoints({
             passTime1 : 0 , saveDeposit1 : 80 , saveProfit1 : 0,
             passTime2 : 50, saveDeposit2 : 100, saveProfit2 : 0,
             passTime3 : 80, saveDeposit3 : 100, saveProfit3 : 40
         });
+
+        uint256 timePlanLen = _timePlans_.length;
+        for(uint256 i; i < timePlanLen; i ++) {
+            _timePlans.add(_timePlans_[i]);
+        }
+
+        setInvestPlans(_investPlanAmounts_, _investPlanProfits_);
     }
 
     function BLBsForUSD(uint256 amountBUSD) public view returns(uint256){
@@ -145,8 +150,9 @@ contract StakeBLB_BLB is Ownable, Pausable {
         }
     }
 
-    function buyAndStake(uint256 amountBUSD, uint256 duration) public payable whenNotPaused {
-        require(rewardPlans[duration] != 0, "there is no plan by this duration");
+    function buyAndStake(uint256 amountBUSD, uint256 timeInDays) public payable whenNotPaused {
+        require(_timePlans.contains(timeInDays), "there is no such time plan available");
+        uint256 duration = timeInDays * 1 days;
 
         address investor = msg.sender;
         uint256 amount;
@@ -162,7 +168,7 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         uint256 start = block.timestamp;
         uint256 end = block.timestamp + duration;
-        uint256 profit = amount * rewardPlans[duration] / 10 ** 18;
+        uint256 profit = profitCalculator(amount, duration);
 
         investments[investor].push(Investment(amount, start, end, profit, 0));
 
@@ -170,13 +176,14 @@ contract StakeBLB_BLB is Ownable, Pausable {
         totalPendingBLB += profit;
     }
 
-    function newInvestment(uint256 amount, uint256 duration) public whenNotPaused {
-        require(rewardPlans[duration] != 0, "there is no plan by this duration");
+    function newInvestment(uint256 amount, uint256 timeInDays) public whenNotPaused {
+        require(_timePlans.contains(timeInDays), "there is no such time plan available");
+        uint256 duration = timeInDays * 1 days;
 
         address investor = msg.sender;
         uint256 start = block.timestamp;
         uint256 end = block.timestamp + duration;
-        uint256 profit = amount * rewardPlans[duration] / 10 ** 18;
+        uint256 profit = profitCalculator(amount, duration);
 
         BLB.transferFrom(investor, address(this), amount);
 
@@ -184,6 +191,59 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         totalDepositBLB += amount;
         totalPendingBLB += profit;
+    }
+
+    function topUpPayable(uint256 amountBUSD, uint256 investmentId) public payable whenNotPaused {
+
+        uint256 addingAmount;
+        address investor = msg.sender;
+
+        if(amountBUSD != 0) {
+            require(msg.value == 0, "not allowed to topUp in BUSD and BNB in same time");
+            addingAmount = BLBSwap.BLBsForUSD(amountBUSD);
+            BUSD.transferFrom(investor, owner(), amountBUSD); 
+        } else {
+            addingAmount = BLBSwap.BLBsForBNB(msg.value);
+            payable(owner()).transfer(msg.value);
+        }
+
+        uint256 currentTime = block.timestamp;
+        Investment memory investment = investments[investor][investmentId];
+        uint256 wholeTime = investment.end - investment.start;
+        require(currentTime < investment.end, "investment expired");
+        uint256 oldProfit = investment.profit * (currentTime - investment.start) / wholeTime;
+        uint256 newProfit = profitCalculator(investment.amount + addingAmount, investment.end - currentTime);
+
+        require(oldProfit + newProfit > investment.profit, "the profit is not increasing");
+        uint256 addingProfit = oldProfit + newProfit - investment.profit;
+
+        investments[investor][investmentId].amount += addingAmount;
+        investments[investor][investmentId].profit += addingProfit;
+        
+        totalDepositBLB += addingAmount;
+        totalPendingBLB += addingProfit;
+    }
+
+    function topUp(uint256 addingAmount, uint256 investmentId) public whenNotPaused {
+
+        address investor = msg.sender;
+        uint256 currentTime = block.timestamp;
+        Investment memory investment = investments[investor][investmentId];
+        uint256 wholeTime = investment.end - investment.start;
+        require(currentTime < investment.end, "investment expired");
+        uint256 oldProfit = investment.profit * (currentTime - investment.start) / wholeTime;
+        uint256 newProfit = profitCalculator(investment.amount + addingAmount, investment.end - currentTime);
+
+        require(oldProfit + newProfit > investment.profit, "the profit is not increasing");
+        uint256 addingProfit = oldProfit + newProfit - investment.profit;
+
+        BLB.transferFrom(investor, address(this), addingAmount);
+
+        investments[investor][investmentId].amount += addingAmount;
+        investments[investor][investmentId].profit += addingProfit;
+        
+        totalDepositBLB += addingAmount;
+        totalPendingBLB += addingProfit;
     }
 
     function withdraw(uint256 investmentId) public {
@@ -207,17 +267,6 @@ contract StakeBLB_BLB is Ownable, Pausable {
         totalPendingBLB -= investment.profit;
     }
 
-    function plans() public view returns(uint256[] memory durations, uint256[] memory profits) {
-        uint256 len = _plans.length;
-        durations = new uint256[](len);
-        profits = new uint256[](len);
-
-        for(uint256 i = 0; i < len; i++) {
-            durations[i] = _plans[i];
-            profits[i] = rewardPlans[_plans[i]];
-        }
-    }
-
     function checkpoints() public view returns(
         Checkpoint memory checkpoint1_, 
         Checkpoint memory checkpoint2_, 
@@ -228,19 +277,23 @@ contract StakeBLB_BLB is Ownable, Pausable {
         checkpoint3_ = checkpoint3;
     }
 
-    function setPlan(uint256 duration, uint256 profit) public onlyOwner {
-        rewardPlans[duration]  = profit;
-        if(!planExists[duration]) {
-            planExists[duration] = true;
-            _plans.push(duration);
-        }
-    }
-
     function setCheckpoints(
         uint256 passTime1, uint256 saveDeposit1, uint256 saveProfit1,
         uint256 passTime2, uint256 saveDeposit2, uint256 saveProfit2,
         uint256 passTime3, uint256 saveDeposit3, uint256 saveProfit3
     ) public onlyOwner {
+        require(
+            passTime1 < passTime2 && passTime2 < passTime3, 
+            "Pass Times must be increasing in a row"
+        );
+        require(
+            saveDeposit1 <= saveDeposit2 && saveDeposit2 <= saveDeposit3, 
+            "Pass Times must be same or increasing in a row"
+        );
+        require(
+            saveProfit1 <= saveProfit2 && saveProfit2 <= saveProfit3, 
+            "Pass Times must be same or increasing in a row"
+        );
         checkpoint1 = Checkpoint(passTime1, saveDeposit1, saveProfit1);
         checkpoint2 = Checkpoint(passTime2, saveDeposit2, saveProfit2);
         checkpoint3 = Checkpoint(passTime3, saveDeposit3, saveProfit3);
@@ -279,6 +332,71 @@ contract StakeBLB_BLB is Ownable, Pausable {
         for(uint256 i; i < len; i++) {
             BLB.transferFrom(from, users[i], amounts[i]);
         }
+    }
+
+
+// time plans -----------------------------------------------------------------------------------
+
+    EnumerableSet.UintSet _timePlans;
+
+    function removeTimePlan(uint256 timeInDays) public onlyOwner {
+        require(_timePlans.contains(timeInDays), "Time plans must exist in _timePlans");
+        _timePlans.remove(timeInDays);
+    }
+
+    function addTimePlan(uint256 timeInDays) public onlyOwner {
+        require(!_timePlans.contains(timeInDays), "Time plan already exists in _timePlans");
+        _timePlans.add(timeInDays);
+    }
+
+    function timePlans() public view returns(uint256[] memory){
+        return _timePlans.values();
+    }
+
+// profit plans ---------------------------------------------------------------------------------
+    uint256[] _investPlanAmounts;
+    uint256[] _investPlanProfits;
+
+    function setInvestPlans(
+        uint256[] memory _investPlanAmounts_,
+        uint256[] memory _investPlanProfits_
+    ) public onlyOwner {
+        uint256 len = _investPlanAmounts_.length;
+        require(len ==_investPlanProfits_.length, "arrays length must be same");
+        for(uint256 i = 1; i < len; i++) {
+            require(
+                _investPlanAmounts_[i] > _investPlanAmounts_[i-1],
+                "amounts must be increasing in a row"
+            );
+            require(
+                _investPlanProfits_[i] >= _investPlanProfits_[i-1],
+                "profits must be same or increasing in a row"
+            );
+        }
+        _investPlanAmounts = _investPlanAmounts_;
+        _investPlanProfits = _investPlanProfits_;
+    }
+
+    function investPlans() public view returns(
+        uint256[] memory _investPlanAmounts_, // [ 10 * 10e18, 100 * 10e18, 1000 * 10e18]
+        uint256[] memory _investPlanProfits_  // [ 300, 500, 1200]
+    ) {
+        _investPlanAmounts_ = _investPlanAmounts;
+        _investPlanProfits_ = _investPlanProfits;
+    }
+
+
+// profit calculator -------------------------------------------------------------------
+
+    function profitCalculator(uint256 investingAmount, uint256 duration) public view returns(uint256 profit) {
+        uint256 len = _investPlanAmounts.length;
+        for(uint256 i = len; i > 0; i--) {
+            if(investingAmount >= _investPlanAmounts[i - 1]) {
+                profit = investingAmount * _investPlanProfits[i - 1]/10000 * duration / 30 days;
+                break;
+            }
+        }
+        require(profit != 0, "no plan for this amount");
     }
     
 }
