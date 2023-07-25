@@ -14,7 +14,7 @@
     "BLBIO_bsc_testnet" : "https://testnet.bscscan.com/address/0xd968d05f06efc73065e6fe616B0D6534e2c73Cf4#code",
     "BLBIO_bsc_mainnet" : "https://bscscan.com/address/0xF3516758a3D6Ac6d9182e86b069BCac132e0D790#code",
 
-    "BLB_Staking_testnet" : "https://testnet.bscscan.com/address/0x5546F1aFD1eD63Fa79f0fE1fa02a94cc15355A68#code",
+    "BLB_Staking_testnet" : "https://testnet.bscscan.com/address/0x6cFDe4b568E4C209D9A819F411236780568fdd65#code",
     "BNB_Staking_testnet" : "https://testnet.bscscan.com/address/0xE743361Cc127Fd535139415C9AA766B3484F5C6c#code",
 
     "BLB_Staking_mainnet" : "https://bscscan.com/address/0xeDBBE775ddfE0801C633B796B4620B06D2Aa76AC#code"
