@@ -377,9 +377,9 @@ contract StakeBLB_BLB is Ownable, Pausable {
         _investPlanProfits = _investPlanProfits_;
     }
 
-    function investPlans() public view returns(
-        uint256[] memory _investPlanAmounts_, // [ 10 * 10e18, 100 * 10e18, 1000 * 10e18]
-        uint256[] memory _investPlanProfits_  // [ 300, 500, 1200]
+    function plans() external view returns(
+        uint256[] memory _investPlanAmounts_, 
+        uint256[] memory _investPlanProfits_  
     ) {
         _investPlanAmounts_ = _investPlanAmounts;
         _investPlanProfits_ = _investPlanProfits;
