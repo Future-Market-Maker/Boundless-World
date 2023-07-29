@@ -30,6 +30,7 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
     struct Investment {
         uint256 amount;
+        uint256 amountUSD;
         uint256 start;
         uint256 end;
         uint256 profit;
@@ -156,21 +157,24 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         address investor = msg.sender;
         uint256 amount;
+        uint256 amountUSD;
 
         if(amountBUSD != 0) {
             require(msg.value == 0, "not allowed to buy in BUSD and BNB in same time");
             amount = BLBSwap.BLBsForUSD(amountBUSD);
+            amountUSD = amountBUSD;
             BUSD.transferFrom(investor, owner(), amountBUSD); 
         } else {
             amount = BLBSwap.BLBsForBNB(msg.value);
+            amountUSD = amount * 10 ** 18 / BLBSwap.BLBsForUSD(10 ** 18);
             payable(owner()).transfer(msg.value);
         }
 
         uint256 start = block.timestamp;
         uint256 end = block.timestamp + duration;
-        uint256 profit = profitCalculator(amount, duration);
+        uint256 profit = profitCalculator(amountUSD, duration);
 
-        investments[investor].push(Investment(amount, start, end, profit, 0));
+        investments[investor].push(Investment(amount, amountUSD, start, end, profit, 0));
 
         totalDepositBLB += amount;
         totalPendingBLB += profit;
@@ -183,11 +187,12 @@ contract StakeBLB_BLB is Ownable, Pausable {
         address investor = msg.sender;
         uint256 start = block.timestamp;
         uint256 end = block.timestamp + duration;
-        uint256 profit = profitCalculator(amount, duration);
+        uint256 amountUSD = amount * 10 ** 18 / BLBSwap.BLBsForUSD(10 ** 18);
+        uint256 profit = profitCalculator(amountUSD, duration);
 
         BLB.transferFrom(investor, address(this), amount);
 
-        investments[investor].push(Investment(amount, start, end, profit, 0));
+        investments[investor].push(Investment(amount, amountUSD, start, end, profit, 0));
 
         totalDepositBLB += amount;
         totalPendingBLB += profit;
@@ -196,14 +201,17 @@ contract StakeBLB_BLB is Ownable, Pausable {
     function topUpPayable(uint256 amountBUSD, uint256 investmentId) public payable whenNotPaused {
 
         uint256 addingAmount;
+        uint256 addingAmountUSD;
         address investor = msg.sender;
 
         if(amountBUSD != 0) {
             require(msg.value == 0, "not allowed to topUp in BUSD and BNB in same time");
             addingAmount = BLBSwap.BLBsForUSD(amountBUSD);
+            addingAmountUSD = amountBUSD;
             BUSD.transferFrom(investor, owner(), amountBUSD); 
         } else {
             addingAmount = BLBSwap.BLBsForBNB(msg.value);
+            addingAmountUSD = addingAmount * 10 ** 18 / BLBSwap.BLBsForUSD(10 ** 18);
             payable(owner()).transfer(msg.value);
         }
 
@@ -212,12 +220,13 @@ contract StakeBLB_BLB is Ownable, Pausable {
         uint256 wholeTime = investment.end - investment.start;
         require(currentTime < investment.end, "investment expired");
         uint256 oldProfit = investment.profit * (currentTime - investment.start) / wholeTime;
-        uint256 newProfit = profitCalculator(investment.amount + addingAmount, investment.end - currentTime);
+        uint256 newProfit = profitCalculator(investment.amountUSD + addingAmountUSD, investment.end - currentTime);
 
         require(oldProfit + newProfit > investment.profit, "the profit is not increasing");
         uint256 addingProfit = oldProfit + newProfit - investment.profit;
 
         investments[investor][investmentId].amount += addingAmount;
+        investments[investor][investmentId].amountUSD += addingAmountUSD;
         investments[investor][investmentId].profit += addingProfit;
         
         totalDepositBLB += addingAmount;
@@ -228,11 +237,12 @@ contract StakeBLB_BLB is Ownable, Pausable {
 
         address investor = msg.sender;
         uint256 currentTime = block.timestamp;
+        uint256 addingAmountUSD = addingAmount * 10 ** 18 / BLBSwap.BLBsForUSD(10 ** 18);
         Investment memory investment = investments[investor][investmentId];
         uint256 wholeTime = investment.end - investment.start;
         require(currentTime < investment.end, "investment expired");
         uint256 oldProfit = investment.profit * (currentTime - investment.start) / wholeTime;
-        uint256 newProfit = profitCalculator(investment.amount + addingAmount, investment.end - currentTime);
+        uint256 newProfit = profitCalculator(investment.amountUSD + addingAmountUSD, investment.end - currentTime);
 
         require(oldProfit + newProfit > investment.profit, "the profit is not increasing");
         uint256 addingProfit = oldProfit + newProfit - investment.profit;
@@ -240,6 +250,7 @@ contract StakeBLB_BLB is Ownable, Pausable {
         BLB.transferFrom(investor, address(this), addingAmount);
 
         investments[investor][investmentId].amount += addingAmount;
+        investments[investor][investmentId].amountUSD += addingAmountUSD;
         investments[investor][investmentId].profit += addingProfit;
         
         totalDepositBLB += addingAmount;
@@ -322,7 +333,7 @@ contract StakeBLB_BLB is Ownable, Pausable {
         BLB.transferFrom(msg.sender, user, amount);
     }
 
-    function pay(
+    function payBatch(
         address[] calldata users,
         uint256[] calldata amounts
     ) external {
