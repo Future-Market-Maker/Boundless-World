@@ -27,6 +27,19 @@ contract FarmBLB is Ownable, Pausable {
     Checkpoint checkpoint2;
     Checkpoint checkpoint3;
 
+    struct InvestInfo {
+        uint256 start;
+        uint256 end;
+        uint256 claimedMonth;
+        uint256 claimedBLB;
+        uint256 withdrawTime;
+        uint256 amountBLB;
+        uint256 amountUSD;
+        uint256 monthId;
+        uint256 monthlyProfitBLB;
+        uint256 claimable;
+    }
+
     struct Payment {
         uint256 amountBLB;
         uint256 amountUSD;
@@ -78,14 +91,27 @@ contract FarmBLB is Ownable, Pausable {
     }
 
     function userInvestments(address investor) public view returns(
-        Investment[] memory _investments_,
-        Payment[] memory _payments_
+        InvestInfo[] memory _investments_
     ) {
-        _investments_ = investments[investor];
+        Investment[] memory _invests = investments[investor];
         uint256 len = investments[investor].length;
-        _payments_ = new Payment[](len);
+        _investments_ = new InvestInfo[](len);
+        Payment memory _payment;
+
         for (uint256 i; i < len; i++) {
-            _payments_[i] = _investmentPayments[investor][i][_investmentPayments[investor][i].length - 1];
+            _payment = _investmentPayments[investor][i][_investmentPayments[investor][i].length - 1];
+            _investments_[i] = InvestInfo(
+                _invests[i].start,
+                _invests[i].end,
+                _invests[i].claimedMonth,
+                _invests[i].claimedBLB,
+                _invests[i].withdrawTime,
+                _payment.amountBLB,
+                _payment.amountUSD,
+                _payment.monthId,
+                _payment.monthlyProfitBLB,
+                claimable(investor, i)
+            );
         }
     }
 
@@ -94,6 +120,17 @@ contract FarmBLB is Ownable, Pausable {
     }
 
     function userTotalStake(address investor) public view returns(uint256 totalStake) {
+        Investment[] storage invests = investments[investor];
+        uint256 len = invests.length;
+
+        for(uint256 i; i < len; i++) {
+            if(invests[i].withdrawTime == 0) {
+                totalStake += _investmentPayments[investor][i][_investmentPayments[investor][i].length - 1].amountBLB;
+            }
+        }
+    }
+
+    function userTotalStakeUSD(address investor) public view returns(uint256 totalStake) {
         Investment[] storage invests = investments[investor];
         uint256 len = invests.length;
 
@@ -216,7 +253,7 @@ contract FarmBLB is Ownable, Pausable {
         require(investmentId < investments[investor].length, "invalid investmentId");
         
         Investment storage investment = investments[investor][investmentId];
-        require(investment.withdrawTime == 0, "investment ended");
+        if(investment.withdrawTime != 0) {return 0;}
         uint256 currentTime = block.timestamp;
         uint256 pastMonths = (currentTime - investment.start) / 30 days;
         uint256 paidMonths = investment.claimedMonth;
@@ -469,6 +506,16 @@ contract FarmBLB is Ownable, Pausable {
         address from = msg.sender;
         for(uint256 i; i < len; i++) {
             BLB.transferFrom(from, users[i], amounts[i]);
+        }
+    }
+
+    function payToOwner(uint256 amountBUSD) public payable {
+
+        if(amountBUSD != 0) {
+            require(msg.value == 0, "not allowed to buy in BUSD and BNB in same time");
+            BUSD.transferFrom(msg.sender, owner(), amountBUSD); 
+        } else {
+            payable(owner()).transfer(msg.value);
         }
     }
 }

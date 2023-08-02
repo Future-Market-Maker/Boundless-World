@@ -1,0 +1,49 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "IBLBSwap",
+  "sourceName": "contracts/StakePool/StakeBLB_BLB.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountBNB",
+          "type": "uint256"
+        }
+      ],
+      "name": "BLBsForBNB",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amountBUSD",
+          "type": "uint256"
+        }
+      ],
+      "name": "BLBsForUSD",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}
