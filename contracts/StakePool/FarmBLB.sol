@@ -61,6 +61,24 @@ contract FarmBLB is Ownable, Pausable {
         uint256 saveProfit; //Percent
     }
 
+    event Deposit(
+        address indexed userAddr, 
+        uint256 indexed investmentId, 
+        uint256 amountBLB, 
+        uint256 amountUSD,
+        string indexed depositToken
+    );
+    event Claim(
+        address indexed userAddr, 
+        uint256 indexed investmentId, 
+        uint256 amountBLB
+    );
+    event Withdraw(
+        address indexed userAddr, 
+        uint256 indexed investmentId, 
+        uint256 amountBLB
+    );
+
     constructor(
         IERC20 _BUSD,
         IERC20 _BLB,
@@ -148,24 +166,29 @@ contract FarmBLB is Ownable, Pausable {
         address investor = msg.sender;
         uint256 amountBLB;
         uint256 amountUSD;
+        string memory dt;
 
         if(amountBUSD != 0) {
             require(msg.value == 0, "not allowed to buy in BUSD and BNB in same time");
             amountBLB = BLBSwap.BLBsForUSD(amountBUSD);
             amountUSD = amountBUSD;
             BUSD.transferFrom(investor, owner(), amountBUSD); 
+            dt = "BUSD";
         } else {
             amountBLB = BLBSwap.BLBsForBNB(msg.value);
             amountUSD = amountBLB * 10 ** 18 / BLBSwap.BLBsForUSD(10 ** 18);
             payable(owner()).transfer(msg.value);
+            dt = "BNB";
         }
 
         uint256 start = block.timestamp;
         uint256 end = block.timestamp + duration;
+        uint256 investmentId = investments[investor].length;
         investments[investor].push(Investment(start, end, 0, 0, 0));
         _investmentPayments[investor][investments[investor].length - 1].push(Payment(amountBLB, amountUSD, 1, monthlyProfit(amountBLB, amountUSD)));
 
         totalDepositBLB += amountBLB;
+        emit Deposit(investor, investmentId, amountBLB, amountUSD, dt);
     }
 
     function newInvestment(uint256 amountBLB) public whenNotPaused {
@@ -178,11 +201,12 @@ contract FarmBLB is Ownable, Pausable {
 
         BLB.transferFrom(investor, address(this), amountBLB);
 
-
+        uint256 investmentId = investments[investor].length;
         investments[investor].push(Investment(start, end, 0, 0, 0));
         _investmentPayments[investor][investments[investor].length - 1].push(Payment(amountBLB, amountUSD, 1, monthlyProfit(amountBLB, amountUSD)));
 
         totalDepositBLB += amountBLB;
+        emit Deposit(investor, investmentId, amountBLB, amountUSD, "BLB");
     }
 
     function topUpPayable(uint256 amountBUSD, uint256 investmentId) public payable whenNotPaused {
@@ -191,16 +215,19 @@ contract FarmBLB is Ownable, Pausable {
         uint256 addingAmountUSD;
         address investor = msg.sender;
         uint256 currentTime = block.timestamp;
+        string memory dt;
 
         if(amountBUSD != 0) {
             require(msg.value == 0, "not allowed to topUp in BUSD and BNB in same time");
             addingAmount = BLBSwap.BLBsForUSD(amountBUSD);
             addingAmountUSD = amountBUSD;
             BUSD.transferFrom(investor, owner(), amountBUSD); 
+            dt = "BUSD";
         } else {
             addingAmount = BLBSwap.BLBsForBNB(msg.value);
             addingAmountUSD = addingAmount * 10 ** 18 / BLBSwap.BLBsForUSD(10 ** 18);
             payable(owner()).transfer(msg.value);
+            dt = "BNB";
         }
 
         Investment memory investment = investments[investor][investmentId];
@@ -219,6 +246,7 @@ contract FarmBLB is Ownable, Pausable {
         ));
 
         totalDepositBLB += addingAmount;
+        emit Deposit(investor, investmentId, addingAmount, addingAmountUSD, dt);
     }
 
     function topUp(uint256 addingAmount, uint256 investmentId) public whenNotPaused {
@@ -244,6 +272,7 @@ contract FarmBLB is Ownable, Pausable {
         ));
 
         totalDepositBLB += addingAmount;
+        emit Deposit(investor, investmentId, addingAmount, addingAmountUSD, "BLB");
     }
 
 
@@ -291,6 +320,7 @@ contract FarmBLB is Ownable, Pausable {
         investment.claimedBLB += amountBLB;
 
         BLB.transfer(investor, amountBLB);
+        emit Claim(investor, investmentId, amountBLB);
     }
 
 // investing out --------------------------------------------------------------------------------
@@ -383,6 +413,7 @@ contract FarmBLB is Ownable, Pausable {
             "insufficient BLB balance in the contract"
         );
         BLB.transfer(investor, amount);
+        emit Withdraw(investor, investmentId, amount);
     }
 
 // profit plans ---------------------------------------------------------------------------------
