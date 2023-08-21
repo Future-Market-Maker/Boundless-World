@@ -18,6 +18,8 @@ let aggrAddr = zero_address
     blbAddr = "0x13D67Fd10BDBe8301E978e4AdCBD2c0AD26F7549"
     blbIoAddr = "0xF3516758a3D6Ac6d9182e86b069BCac132e0D790"
     farmAddr = "0x6cFDe4b568E4C209D9A819F411236780568fdd65"
+    stakingAddr = "0x3Cb866e11637Ff23e607BeE8a0DaF85b4f5E0a62"
+    swapAddr = "0xB4396171B41597Df63f513cD85994f876703B6E2"
 
   } else if(network.config.chainId == 97) {
     

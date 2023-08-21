@@ -25,6 +25,7 @@ module.exports = {
     },
     bscTestnet: {
       url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+      // url: "https://data-seed-prebsc-1-s2.binance.org:8545/",
       // url: "https://bsc-testnet.public.blastapi.io",
       chainId: 97,
       accounts: [`0x${PRIVATE_KEY}`]
