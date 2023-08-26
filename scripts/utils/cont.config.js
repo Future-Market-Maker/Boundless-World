@@ -46,4 +46,5 @@ module.exports = {
   blbAddr,
   blbIoAddr,
   farmAddr,
+  stakingAddr
 }
