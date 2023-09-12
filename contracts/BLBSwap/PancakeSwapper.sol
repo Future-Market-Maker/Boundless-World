@@ -83,7 +83,7 @@ contract PancakeSwapper {
     IV3SwapRouter internal constant swapRouter = IV3SwapRouter(0x13f4EA83D0bd40E75C8222255bc855a974568Dd4);
     IV3Factory internal constant factory = IV3Factory(0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865);
     address internal constant wBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
-    address internal constant BUSD = 0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56;
+    address internal constant BUSD = 0x55d398326f99059fF775485246999027B3197955;
     address public BLB = 0x13D67Fd10BDBe8301E978e4AdCBD2c0AD26F7549;
     uint24 internal constant poolFee = 500;
 
@@ -116,24 +116,24 @@ contract PancakeSwapper {
         return pool.token0() == wBNB ? sqrtPriceX96.getPrice0() : sqrtPriceX96.getPrice1();
     }
 
-    function BLB_BUSD() public view returns(uint256) {
-        IV3PairPool pool = IV3PairPool(factory.getPool(BLB, BUSD, poolFee));
+    function BLB_BNB() public view returns(uint256) {
+        IV3PairPool pool = IV3PairPool(factory.getPool(BLB, wBNB, poolFee));
         (uint160 sqrtPriceX96) = pool.slot0().sqrtPriceX96;
         return pool.token0() == BLB ? sqrtPriceX96.getPrice0() : sqrtPriceX96.getPrice1();
     }
 
-    function BUSD_BLB() public view returns(uint256) {
-        IV3PairPool pool = IV3PairPool(factory.getPool(BLB, BUSD, poolFee));
+    function BNB_BLB() public view returns(uint256) {
+        IV3PairPool pool = IV3PairPool(factory.getPool(BLB, wBNB, poolFee));
         (uint160 sqrtPriceX96) = pool.slot0().sqrtPriceX96;
         return pool.token0() == BLB ? sqrtPriceX96.getPrice1() : sqrtPriceX96.getPrice0();
     }
 
-    function BLB_BNB() public view returns(uint256) {
-        return BLB_BUSD() * BUSD_BNB() / 10 ** 18;
+    function BLB_BUSD() public view returns(uint256) {
+        return BLB_BNB() * BNB_BUSD() / 10 ** 18;
     }
 
-    function BNB_BLB() public view returns(uint256) {
-        return BNB_BUSD() * BUSD_BLB() / 10 ** 18;
+    function BUSD_BLB() public view returns(uint256) {
+        return BUSD_BNB() * BNB_BLB() / 10 ** 18;
     }
 
 

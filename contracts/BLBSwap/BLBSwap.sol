@@ -34,14 +34,14 @@ contract BLBSwap is Ownable, PancakeSwapper {
             if(amountBUSD == 0) {
                 amountBLB = BLBsForBNB(amountBNB);
                 require(blbBalance() >= amountBLB, "insufficient BLB to pay");
-                IERC20(BLB).transfer(purchaser, amountBLB); 
+                TransferHelper.safeTransfer(BLB, purchaser, amountBLB);
                 emit Swap(purchaser, "BNB", "BLB", amountBNB, amountBLB);
             } else {
                 require(amountBNB == 0, "not allowed to purchase in BUSD and BNB in sameTime");
                 amountBLB = BLBsForUSD(amountBUSD);
                 require(blbBalance() >= amountBLB, "insufficient BLB to pay");
                 TransferHelper.safeTransferFrom(BUSD, purchaser, address(this), amountBUSD);
-                TransferHelper.safeTransferFrom(BLB, address(this), purchaser, amountBLB);
+                TransferHelper.safeTransfer(BLB, purchaser, amountBLB);
                 emit Swap(purchaser, "BUSD", "BLB", amountBUSD, amountBLB);
             }
         }
@@ -61,7 +61,7 @@ contract BLBSwap is Ownable, PancakeSwapper {
             if(toBUSD) {
                 amountOut = USDsForBLB(amountBLB);
                 require(busdBalance() >= amountOut, "insufficient BUSD to pay");
-                IERC20(BUSD).transfer(seller, amountOut);
+                TransferHelper.safeTransfer(BUSD, seller, amountOut);
                 emit Swap(seller, "BLB", "BUSD", amountBLB, amountOut);
             } else {
                 amountOut = BNBsForBLB(amountBLB);
