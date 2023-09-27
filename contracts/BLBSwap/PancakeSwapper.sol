@@ -3,8 +3,7 @@ pragma solidity >=0.7.5;
 pragma abicoder v2;
 
 import '@pancakeswap/v3-core/contracts/interfaces/callback/IPancakeV3SwapCallback.sol';
-import '@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol';
-
+import '@pancakeswap/v3-periphery/contracts/libraries/TransferHelper.sol';
 
 interface IwERC20 {
     function deposit() external payable;
@@ -40,27 +39,22 @@ interface IV3PairPool {
 }
 
 interface IV3SwapRouter is IPancakeV3SwapCallback {
-    struct ExactInputSingleParams {
-        address tokenIn;
-        address tokenOut;
-        uint24 fee;
+
+    struct ExactInputParams {
+        bytes path;
         address recipient;
         uint256 amountIn;
         uint256 amountOutMinimum;
-        uint160 sqrtPriceLimitX96;
     }
-    function exactInputSingle(ExactInputSingleParams calldata params) external payable returns (uint256 amountOut);
+    function exactInput(ExactInputParams calldata params) external payable returns (uint256 amountOut);
 
-    struct ExactOutputSingleParams {
-        address tokenIn;
-        address tokenOut;
-        uint24 fee;
+    struct ExactOutputParams {
+        bytes path;
         address recipient;
         uint256 amountOut;
         uint256 amountInMaximum;
-        uint160 sqrtPriceLimitX96;
     }
-    function exactOutputSingle(ExactOutputSingleParams calldata params) external payable returns (uint256 amountIn);
+    function exactOutput(ExactOutputParams calldata params) external payable returns (uint256 amountIn);
 }
 
 library pricer {
@@ -83,23 +77,24 @@ contract PancakeSwapper {
     IV3SwapRouter internal constant swapRouter = IV3SwapRouter(0x13f4EA83D0bd40E75C8222255bc855a974568Dd4);
     IV3Factory internal constant factory = IV3Factory(0x0BFbCF9fa4f9C56B0F40a671Ad40E0805A091865);
     address internal constant wBNB = 0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c;
-    address internal constant BUSD = 0x55d398326f99059fF775485246999027B3197955;
-    address public BLB = 0x13D67Fd10BDBe8301E978e4AdCBD2c0AD26F7549;
     uint24 internal constant poolFee = 500;
+    address public BUSD;
+    address public BLB;
 
-// BLBsForBNB
+    constructor(address _BLB, address _BUSD) {
+        BLB = _BLB;
+        BUSD = _BUSD;
+    }
+
     function _BLBsForBNB(uint256 amountBNB) internal view returns(uint256) {
         return amountBNB * BNB_BLB() / 10 ** 18;
     }
-// BLBsForUSD
     function _BLBsForUSD(uint256 amountBUSD) internal view returns(uint256) {
         return amountBUSD * BUSD_BLB() / 10 ** 18;
     }
-// BNBsforBLB
     function _BNBsForBLB(uint256 amountBLB) internal view returns(uint256) {
         return amountBLB * BLB_BNB() / 10 ** 18;
     }
-// BUSD_for_BLB
     function _USDsForBLB(uint256 amountBLB) internal view returns(uint256) {
         return amountBLB * BLB_BUSD() / 10 ** 18;
     }
@@ -144,21 +139,18 @@ contract PancakeSwapper {
     ) internal returns(uint256 amountBLB) {
 
 
-        IV3SwapRouter.ExactInputSingleParams memory params;
+        IV3SwapRouter.ExactInputParams memory params;
 
         if(amountBUSD == 0) {
             IwERC20 wbnb = IwERC20(wBNB);
             wbnb.deposit{value: amountBNB}();
 
             TransferHelper.safeApprove(wBNB, address(swapRouter), amountBNB);
-            params = IV3SwapRouter.ExactInputSingleParams({
-                tokenIn: wBNB,
-                tokenOut: BLB,
-                fee: poolFee,
+            params = IV3SwapRouter.ExactInputParams({
+                path: abi.encodePacked(wBNB, poolFee, BLB),
                 recipient: userAddr,
                 amountIn: amountBNB,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
+                amountOutMinimum: 0
             });
 
         } else {
@@ -166,18 +158,15 @@ contract PancakeSwapper {
             TransferHelper.safeTransferFrom(BUSD, userAddr, address(this), amountBUSD);
             TransferHelper.safeApprove(BUSD, address(swapRouter), amountBUSD);
             
-            params = IV3SwapRouter.ExactInputSingleParams({
-                tokenIn: BUSD,
-                tokenOut: BLB,
-                fee: poolFee,
+            params = IV3SwapRouter.ExactInputParams({
+                path: abi.encodePacked(BUSD, poolFee, wBNB, poolFee, BLB),
                 recipient: userAddr,
                 amountIn: amountBUSD,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
+                amountOutMinimum: 0
             });
         }
         
-        amountBLB = swapRouter.exactInputSingle(params);
+        amountBLB = swapRouter.exactInput(params);
     }
 
     function _sellBLB(
@@ -190,31 +179,25 @@ contract PancakeSwapper {
         TransferHelper.safeApprove(BLB, address(swapRouter), amountBLB);
 
         if(toBUSD) {
-            IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter.ExactInputSingleParams({
-                tokenIn: BLB,
-                tokenOut: BUSD,
-                fee: poolFee,
+            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter.ExactInputParams({
+                path: abi.encodePacked(BLB, poolFee, wBNB, poolFee, BUSD),
                 recipient: userAddr,
                 amountIn: amountBLB,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
+                amountOutMinimum: 0
             });
 
-            amountOut = swapRouter.exactInputSingle(params);
+            amountOut = swapRouter.exactInput(params);
 
         } else {
 
-            IV3SwapRouter.ExactInputSingleParams memory params = IV3SwapRouter.ExactInputSingleParams({
-                tokenIn: BLB,
-                tokenOut: wBNB,
-                fee: poolFee,
+            IV3SwapRouter.ExactInputParams memory params = IV3SwapRouter.ExactInputParams({
+                path: abi.encodePacked(BLB, poolFee, wBNB),
                 recipient: address(this),
                 amountIn: amountBLB,
-                amountOutMinimum: 0,
-                sqrtPriceLimitX96: 0
+                amountOutMinimum: 0
             });
 
-            amountOut = swapRouter.exactInputSingle(params);
+            amountOut = swapRouter.exactInput(params);
             IwERC20 wbnb = IwERC20(wBNB);
             wbnb.withdraw(amountOut);
             payable(userAddr).transfer(amountOut);

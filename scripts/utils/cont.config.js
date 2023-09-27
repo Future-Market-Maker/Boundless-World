@@ -8,12 +8,13 @@ let busdAddr = zero_address
 let blbIoAddr = zero_address
 let farmAddr = zero_address
 let aggrAddr = zero_address
+let stakingAddr = zero_address
 
   if(network.config.chainId == 56) {
 
     initialAdmin = "0x31FBc230BC6b8cE2eE229eCfbACCc364Da3eD7fC";
     // const initialAdmin = "0xfd4299C480dEcE1f48e514e2D3c6F38815677106";
-    busdAddr = "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56"
+    busdAddr = "0x55d398326f99059fF775485246999027B3197955"
     aggrAddr = "0x0567F2323251f0Aab15c8dFb1967E4e8A7D42aeE"
     blbAddr = "0x13D67Fd10BDBe8301E978e4AdCBD2c0AD26F7549"
     blbIoAddr = "0xF3516758a3D6Ac6d9182e86b069BCac132e0D790"

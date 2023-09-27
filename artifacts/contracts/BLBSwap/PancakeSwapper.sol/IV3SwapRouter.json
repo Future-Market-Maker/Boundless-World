@@ -8,19 +8,9 @@
         {
           "components": [
             {
-              "internalType": "address",
-              "name": "tokenIn",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "tokenOut",
-              "type": "address"
-            },
-            {
-              "internalType": "uint24",
-              "name": "fee",
-              "type": "uint24"
+              "internalType": "bytes",
+              "name": "path",
+              "type": "bytes"
             },
             {
               "internalType": "address",
@@ -36,19 +26,14 @@
               "internalType": "uint256",
               "name": "amountOutMinimum",
               "type": "uint256"
-            },
-            {
-              "internalType": "uint160",
-              "name": "sqrtPriceLimitX96",
-              "type": "uint160"
             }
           ],
-          "internalType": "struct IV3SwapRouter.ExactInputSingleParams",
+          "internalType": "struct IV3SwapRouter.ExactInputParams",
           "name": "params",
           "type": "tuple"
         }
       ],
-      "name": "exactInputSingle",
+      "name": "exactInput",
       "outputs": [
         {
           "internalType": "uint256",
@@ -64,19 +49,9 @@
         {
           "components": [
             {
-              "internalType": "address",
-              "name": "tokenIn",
-              "type": "address"
-            },
-            {
-              "internalType": "address",
-              "name": "tokenOut",
-              "type": "address"
-            },
-            {
-              "internalType": "uint24",
-              "name": "fee",
-              "type": "uint24"
+              "internalType": "bytes",
+              "name": "path",
+              "type": "bytes"
             },
             {
               "internalType": "address",
@@ -92,19 +67,14 @@
               "internalType": "uint256",
               "name": "amountInMaximum",
               "type": "uint256"
-            },
-            {
-              "internalType": "uint160",
-              "name": "sqrtPriceLimitX96",
-              "type": "uint160"
             }
           ],
-          "internalType": "struct IV3SwapRouter.ExactOutputSingleParams",
+          "internalType": "struct IV3SwapRouter.ExactOutputParams",
           "name": "params",
           "type": "tuple"
         }
       ],
-      "name": "exactOutputSingle",
+      "name": "exactOutput",
       "outputs": [
         {
           "internalType": "uint256",

@@ -8,8 +8,10 @@ import "./PancakeSwapper.sol";
 contract BLBSwap is Ownable, PancakeSwapper {
 
     constructor(
-        uint256 _BLBsPerUSD
-    ) {
+        uint256 _BLBsPerUSD,
+        address _BLB,
+        address _BUSD
+    ) PancakeSwapper(_BLB, _BUSD) {
         setBLBsPerUSD(_BLBsPerUSD); 
     }
 
